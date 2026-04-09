@@ -1,4 +1,4 @@
-# Core Program Final Project
+# Group 5: Library management system
 
 A starter project for the Core program final project:
   
