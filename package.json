@@ -1,0 +1,30 @@
+{
+  "name": "core-program-final-project",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/HackYourFuture/core-program-final-project#readme",
+  "bugs": {
+    "url": "https://github.com/HackYourFuture/core-program-final-project/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HackYourFuture/core-program-final-project.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "vitest",
+    "start": "node src/index.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1",
+    "vitest": "^4.1.3"
+  }
+}
