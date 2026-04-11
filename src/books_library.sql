@@ -13,3 +13,28 @@ CREATE TABLE books (
     genre TEXT,
     FOREIGN KEY (author_id) REFERENCES authors(author_id)
 );
+
+INSERT INTO authors (first_name, last_name)
+VALUES ('George', 'Orwell');
+
+INSERT INTO books (title, isbn, author_id, publication_year, genre)
+VALUES ('1984', '9780451524935', 1, 1949, 'Dystopian');
+
+SELECT
+    b.book_id,
+    b.title,
+    b.isbn,
+    a.first_name,
+    a.last_name,
+    b.publication_year,
+    b.genre
+FROM books b
+JOIN authors a ON b.author_id = a.author_id
+ORDER BY b.title;
+
+UPDATE books
+SET genre = 'Classic dystopian fiction'
+WHERE book_id = 1;
+
+DELETE FROM books
+WHERE book_id = 1;
