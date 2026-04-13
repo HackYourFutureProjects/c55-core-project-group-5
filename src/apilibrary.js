@@ -1,7 +1,30 @@
 import express from 'express';
 import Database from 'better-sqlite3';
 import axios from 'axios';
+async function fetchBookByTitle(title) {
+  const response = await axios.get('https://openlibrary.org/search.json', {
+    params: {
+      title,
+      limit: 1,
+      fields: 'title,author_name,first_publish_year,isbn',
+    },
+  });
 
+  const docs = response.data.docs;
+
+  if (!docs || docs.length === 0) {
+    throw new Error('Book not found');
+  }
+
+  const book = docs[0];
+
+  return {
+    title: book.title || null,
+    authorName: book.author_name ? book.author_name[0] : null,
+    publicationYear: book.first_publish_year || null,
+    isbn: book.isbn ? book.isbn[0] : null,
+  };
+}
 const app = express();
 const PORT = 3000;
 
@@ -97,7 +120,36 @@ app.get('/books', (req, res) => {
 
   res.send(html);
 });
+app.get('/books/search', async (req, res) => {
+  try {
+    const title = (req.query.title || '').trim();
 
+    if (!title) {
+      return res.status(400).json({ error: 'Title query is required' });
+    }
+
+    const book = await fetchBookByTitle(title);
+
+    return res.json(book);
+  } catch (error) {
+    return res.status(404).json({ error: error.message });
+  }
+  app.get('/books/search', async (req, res) => {
+  try {
+    const title = (req.query.title || '').trim();
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title query is required' });
+    }
+
+    const book = await fetchBookByTitle(title);
+
+    return res.json(book);
+  } catch (error) {
+    return res.status(404).json({ error: error.message });
+  }
+});
+});
 app.listen(PORT, () => {
   console.log(`Server started on http://127.0.0.1:${PORT}`);
 });
