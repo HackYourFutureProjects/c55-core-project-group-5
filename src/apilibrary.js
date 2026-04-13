@@ -11,7 +11,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
-    author_id TEXT,
+    author TEXT,
     year INTEGER,
     isbn TEXT
   )
@@ -61,19 +61,17 @@ app.post('/add', async (req, res) => {
     const year = book.first_publish_year || null;
     const isbn = book.isbn ? book.isbn[0] : null;
 
-    db.prepare(
-      `
+    db.prepare(`
       INSERT INTO books (title, author, year, isbn)
       VALUES (?, ?, ?, ?)
-    `
-    ).run(bookTitle, author, year, isbn);
+    `).run(bookTitle, author, year, isbn);
 
     res.send(`
       <h2>Book added</h2>
-      <p>${bookTitle}</p>
-      <p>${author}</p>
-      <p>${year ?? '-'}</p>
-      <p>${isbn ?? '-'}</p>
+      <p>Title: ${bookTitle}</p>
+      <p>Author: ${author}</p>
+      <p>Year: ${year ?? '-'}</p>
+      <p>ISBN: ${isbn ?? '-'}</p>
       <a href="/">Back</a>
     `);
   } catch (error) {
