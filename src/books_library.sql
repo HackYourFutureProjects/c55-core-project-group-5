@@ -2,6 +2,7 @@ CREATE TABLE authors (
     author_id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL
+    author_id INTEGER REFERENCES authors(id)
 );
 
 CREATE TABLE books (
