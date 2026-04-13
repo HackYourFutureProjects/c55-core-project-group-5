@@ -1,11 +1,7 @@
-import sqlite3 from 'sqlite3';
+import Database from 'better-sqlite3';
 
-const db = new sqlite3.Database('./book_library.db', (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to SQLite database');
-  }
-});
+const db = new Database('./book_library.db');
+
+console.log('Connected to SQLite database');
 
 export default db;
