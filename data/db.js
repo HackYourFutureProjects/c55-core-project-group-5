@@ -1,7 +1,15 @@
 import Database from 'better-sqlite3';
+import fs from 'fs';
 
-const db = new Database('./book_library.db');
+const dbPath = './data/book_library.db';
 
-console.log('Connected to SQLite database');
+if (!fs.existsSync(dbPath)) {
+  console.log('Database file not found:', dbPath);
+  process.exit(1);
+}
+
+const db = new Database(dbPath);
+
+console.log('Connected to database:', dbPath);
 
 export default db;
