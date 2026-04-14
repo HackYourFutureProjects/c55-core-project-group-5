@@ -3,7 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.join(__dirname, 'books.db');
+
+const dbFile = process.env.NODE_ENV === 'test' ? 'test.db' : 'books.db';
+const dbPath = path.join(__dirname, dbFile);
+
 const db = new Database(dbPath);
 
 db.exec(`
