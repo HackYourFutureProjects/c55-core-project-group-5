@@ -1,7 +1,7 @@
 import express from 'express';
 import Database from 'better-sqlite3';
 import axios from 'axios';
-import db from '../../data/db.js';
+import db from '/../data/db.js';
 
 async function fetchBookByTitle(title) {
   const response = await axios.get('https://openlibrary.org/search.json', {
