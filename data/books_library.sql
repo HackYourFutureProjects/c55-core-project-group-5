@@ -3,6 +3,7 @@ CREATE TABLE authors (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL
     author_id INTEGER REFERENCES authors(id)
+    INSERT INTO authors (first_name, last_name) VALUES ("J.K.", "Rowling");
 );
 
 CREATE TABLE books (
