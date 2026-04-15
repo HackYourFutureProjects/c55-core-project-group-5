@@ -1,7 +1,47 @@
 import express from 'express';
-import Database from 'better-sqlite3';
 import axios from 'axios';
-import db from '/../data/db.js';
+import db from '../data/db.js';
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+function splitAuthorName(fullName = 'Unknown Author') {
+  const clean = fullName.trim();
+
+  if (!clean) {
+    return { firstName: 'Unknown', lastName: 'Author' };
+  }
+
+  const parts = clean.split(/\s+/);
+
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: 'Unknown' };
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  };
+}
+
+function normalizeBook(doc) {
+  return {
+    title: doc?.title?.trim() || null,
+    authorName:
+      Array.isArray(doc?.author_name) && doc.author_name[0]
+        ? doc.author_name[0].trim()
+        : 'Unknown Author',
+    publicationYear: Number.isInteger(doc?.first_publish_year)
+      ? doc.first_publish_year
+      : null,
+    isbn:
+      Array.isArray(doc?.isbn) && doc.isbn[0]
+        ? String(doc.isbn[0]).trim()
+        : null,
+  };
+}
 
 async function fetchBookByTitle(title) {
   const response = await axios.get('https://openlibrary.org/search.json', {
@@ -10,150 +50,217 @@ async function fetchBookByTitle(title) {
       limit: 1,
       fields: 'title,author_name,first_publish_year,isbn',
     },
+    timeout: 10000,
   });
 
-  const docs = response.data.docs;
+  const docs = response.data?.docs;
 
   if (!docs || docs.length === 0) {
-    throw new Error('Book not found');
+    return null;
   }
 
-  const book = docs[0];
-
-  return {
-    title: book.title || null,
-    authorName: book.author_name ? book.author_name[0] : null,
-    publicationYear: book.first_publish_year || null,
-    isbn: book.isbn ? book.isbn[0] : null,
-  };
+  return normalizeBook(docs[0]);
 }
-const app = express();
-const PORT = 3000;
-
-const db = new Database('books.db');
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT,
-    year INTEGER,
-    isbn TEXT
-  )
-`);
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>Books Library</h1>
-    <form action="/add" method="post">
-      <input name="title" placeholder="Enter book title" required />
-      <button type="submit">Add Book</button>
-    </form>
-    <br>
-    <a href="/books">Show Books</a>
-  `);
-});
-
-app.post('/add', async (req, res) => {
-  try {
-    const title = (req.body.title || '').trim();
-
-    if (!title) {
-      return res.send('Empty title');
-    }
-
-    const response = await axios.get('https://openlibrary.org/search.json', {
-      params: {
-        title,
-        limit: 1,
-        fields: 'title,author_name,first_publish_year,isbn',
-      },
-    });
-
-    const docs = response.data.docs;
-
-    if (!docs || docs.length === 0) {
-      return res.send('Book not found');
-    }
-
-    const book = docs[0];
-
-    const bookTitle = book.title || 'Unknown title';
-    const author = book.author_name ? book.author_name[0] : 'Unknown author';
-    const year = book.first_publish_year || null;
-    const isbn = book.isbn ? book.isbn[0] : null;
-
-    db.prepare(
-      `
-      INSERT INTO books (title, author, year, isbn)
-      VALUES (?, ?, ?, ?)
-    `
-    ).run(bookTitle, author, year, isbn);
-
-    res.send(`
-      <h2>Book added</h2>
-      <p>Title: ${bookTitle}</p>
-      <p>Author: ${author}</p>
-      <p>Year: ${year ?? '-'}</p>
-      <p>ISBN: ${isbn ?? '-'}</p>
-      <a href="/">Back</a>
-    `);
-  } catch (error) {
-    res.send(`Error: ${error.message}<br><a href="/">Back</a>`);
-  }
+  res.json({
+    message: 'Books API is running',
+    endpoints: {
+      health: 'GET /',
+      allBooks: 'GET /books',
+      searchBook: 'GET /books/search?title=...',
+      importBook: 'POST /books/import',
+    },
+  });
 });
 
 app.get('/books', (req, res) => {
-  const books = db.prepare('SELECT * FROM books ORDER BY id DESC').all();
+  try {
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          b.book_id,
+          b.title,
+          b.isbn,
+          b.publication_year,
+          b.genre,
+          a.author_id,
+          a.first_name,
+          a.last_name
+        FROM books b
+        JOIN authors a ON b.author_id = a.author_id
+        ORDER BY b.book_id DESC
+      `
+      )
+      .all();
 
-  let html = '<h1>Books</h1><a href="/">Back</a><br><br>';
-
-  for (const book of books) {
-    html += `
-      <div>
-        <b>${book.title}</b><br>
-        Author: ${book.author ?? '-'}<br>
-        Year: ${book.year ?? '-'}<br>
-        ISBN: ${book.isbn ?? '-'}<br><br>
-      </div>
-    `;
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
-
-  res.send(html);
 });
+
 app.get('/books/search', async (req, res) => {
   try {
     const title = (req.query.title || '').trim();
 
     if (!title) {
-      return res.status(400).json({ error: 'Title query is required' });
+      return res.status(400).json({
+        error: 'Query parameter "title" is required',
+      });
     }
 
     const book = await fetchBookByTitle(title);
 
-    return res.json(book);
-  } catch (error) {
-    return res.status(404).json({ error: error.message });
-  }
-  app.get('/books/search', async (req, res) => {
-    try {
-      const title = (req.query.title || '').trim();
+    if (!book) {
+      return res.status(404).json({
+        error: 'Book not found in Open Library',
+      });
+    }
 
-      if (!title) {
-        return res.status(400).json({ error: 'Title query is required' });
+    res.json(book);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Failed to fetch book from Open Library',
+      details: error.message,
+    });
+  }
+});
+
+app.post('/books/import', async (req, res) => {
+  try {
+    const title = (req.body.title || '').trim();
+    const genre =
+      typeof req.body.genre === 'string' && req.body.genre.trim()
+        ? req.body.genre.trim()
+        : null;
+
+    if (!title) {
+      return res.status(400).json({
+        error: 'Field "title" is required',
+      });
+    }
+
+    const book = await fetchBookByTitle(title);
+
+    if (!book) {
+      return res.status(404).json({
+        error: 'Book not found in Open Library',
+      });
+    }
+
+    if (!book.title) {
+      return res.status(422).json({
+        error: 'Open Library returned a result without title',
+      });
+    }
+
+    if (!book.isbn) {
+      return res.status(422).json({
+        error:
+          'Open Library returned a result without ISBN; cannot insert because books.isbn is NOT NULL',
+      });
+    }
+
+    const { firstName, lastName } = splitAuthorName(book.authorName);
+
+    const result = db.transaction(() => {
+      let author = db
+        .prepare(
+          `
+          SELECT author_id
+          FROM authors
+          WHERE first_name = ? AND last_name = ?
+        `
+        )
+        .get(firstName, lastName);
+
+      if (!author) {
+        const insertAuthor = db
+          .prepare(
+            `
+            INSERT INTO authors (first_name, last_name)
+            VALUES (?, ?)
+          `
+          )
+          .run(firstName, lastName);
+
+        author = { author_id: Number(insertAuthor.lastInsertRowid) };
       }
 
-      const book = await fetchBookByTitle(title);
+      const existingBook = db
+        .prepare(
+          `
+          SELECT book_id
+          FROM books
+          WHERE isbn = ?
+        `
+        )
+        .get(book.isbn);
 
-      return res.json(book);
-    } catch (error) {
-      return res.status(404).json({ error: error.message });
+      if (existingBook) {
+        return {
+          duplicate: true,
+          book_id: existingBook.book_id,
+          author_id: author.author_id,
+        };
+      }
+
+      const insertBook = db
+        .prepare(
+          `
+          INSERT INTO books (title, isbn, author_id, publication_year, genre)
+          VALUES (?, ?, ?, ?, ?)
+        `
+        )
+        .run(
+          book.title,
+          book.isbn,
+          author.author_id,
+          book.publicationYear,
+          genre
+        );
+
+      return {
+        duplicate: false,
+        book_id: Number(insertBook.lastInsertRowid),
+        author_id: author.author_id,
+      };
+    })();
+
+    if (result.duplicate) {
+      return res.status(409).json({
+        error: 'Book with this ISBN already exists',
+        existing_book_id: result.book_id,
+      });
     }
-  });
+
+    res.status(201).json({
+      message: 'Book imported successfully',
+      book: {
+        book_id: result.book_id,
+        title: book.title,
+        isbn: book.isbn,
+        publication_year: book.publicationYear,
+        genre,
+        author_id: result.author_id,
+        author_name: book.authorName,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Failed to import book',
+      details: error.message,
+    });
+  }
 });
-app.listen(PORT, () => {
-  console.log(`Server started on http://127.0.0.1:${PORT}`);
-});
+
+//app.listen(PORT, () => {
+  //console.log(`Server running on http://localhost:${PORT}`);
+//});
+export { splitAuthorName, normalizeBook, fetchBookByTitle };
+export default app;
