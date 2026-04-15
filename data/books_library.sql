@@ -6,7 +6,7 @@ CREATE TABLE authors (
     INSERT INTO authors (first_name, last_name) VALUES ("J.K.", "Rowling");
 );
 
-CREATE TABLE books (
+CREATE TABLE  books (
     book_id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     isbn TEXT UNIQUE NOT NULL,
@@ -15,6 +15,13 @@ CREATE TABLE books (
     genre TEXT,
     FOREIGN KEY (author_id) REFERENCES authors(author_id)
 );
+
+CREATE TABLE IF NOT EXISTS members (
+    member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL
+  );
+`);
 
 INSERT INTO authors (first_name, last_name)
 VALUES ('George', 'Orwell');
