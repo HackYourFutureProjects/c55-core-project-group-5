@@ -5,14 +5,14 @@ const openai = new OpenAI({
   baseURL: 'https://whgjf3nuoysl5swwb6vcnhew.agents.do-ai.run/api/v1/',
   apiKey: process.env.OPENAI_API_KEY,
 });
-async function getBookTeaser() {
+async function getBookTeaser(title) {
   try {
     const response = await openai.chat.completions.create({
       model: 'OpenAI GPT-oss-120b',
       messages: [
         {
           role: 'user',
-          content: `Generate a teaser for the book with name: ${book.title} . 
+          content: `Generate a teaser for the book with name: ${title} . 
           Return ONLY a JSON object with this structure:
           {
             "name": "string",
@@ -32,7 +32,7 @@ async function getBookTeaser() {
     return null;
   }
 }
-const book = { title: 'Darkly Dreaming Dexter' }; // Example book, to be removed later when we fetch the book from the database
+/*const book = { title: 'Darkly Dreaming Dexter' }; // Example book, to be removed later when we fetch the book from the database
 const teaserData = await getBookTeaser(book.title);
 
 if (teaserData) {
@@ -40,3 +40,5 @@ if (teaserData) {
 } else {
   console.log('Something went wrong.');
 }
+*/
+export { getBookTeaser };
