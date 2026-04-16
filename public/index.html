@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HYF C55-5 Library | Smart Portal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --primary: #6366f1;
+        --bg-main: #f1f5f9;
+        --bg-sidebar: #0f172a;
+        --bg-card: #ffffff;
+        --text-dark: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --success: #10b981;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg-main);
+        color: var(--text-dark);
+        display: flex;
+        min-height: 100vh;
+      }
+
+      nav {
+        width: 280px;
+        background: var(--bg-sidebar);
+        color: white;
+        padding: 2.5rem 1.5rem;
+        position: fixed;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+      }
+      nav h1 {
+        font-size: 1.4rem;
+        margin-bottom: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+      }
+      nav h1 i {
+        color: var(--primary);
+      }
+
+      .nav-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        padding: 14px 16px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: 0.3s;
+      }
+      .nav-btn.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      main {
+        flex: 1;
+        margin-left: 280px;
+        padding: 2.5rem 4rem;
+        max-width: 1400px;
+      }
+      .card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th {
+        text-align: left;
+        padding: 15px 12px;
+        color: var(--text-light);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--bg-main);
+      }
+      td {
+        padding: 18px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .btn-outline {
+        background: white;
+        border: 1px solid var(--border);
+        padding: 8px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      .teaser-box {
+        background: #f5f3ff;
+        border-left: 4px solid var(--primary);
+        padding: 1rem;
+        margin-top: 10px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: none;
+        color: #4338ca;
+      }
+
+      #login-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.85);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+      }
+      .modal-content {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 28px;
+        width: 400px;
+        text-align: center;
+      }
+      .auth-toggle {
+        font-size: 0.85rem;
+        margin-top: 1rem;
+        color: var(--text-light);
+      }
+      .auth-toggle span {
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+      input {
+        width: 100%;
+        margin-bottom: 1rem;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        outline: none;
+      }
+
+      .api-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        margin-bottom: 12px;
+      }
+      .book-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .book-cover-img {
+        width: 50px;
+        height: 75px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="login-modal">
+      <div class="modal-content">
+        <div id="login-view">
+          <h2>Member Login</h2>
+          <input type="email" id="loginEmail" placeholder="email@example.com" />
+          <button class="btn-primary" style="width: 100%" onclick="login()">
+            Sign In
+          </button>
+          <p class="auth-toggle">
+            New? <span onclick="toggleAuth('reg')">Create Account</span>
+          </p>
+        </div>
+        <div id="register-view" class="hidden">
+          <h2>Join Library</h2>
+          <input type="text" id="regName" placeholder="Full Name" />
+          <input type="email" id="regEmail" placeholder="email@example.com" />
+          <button class="btn-primary" style="width: 100%" onclick="register()">
+            Register
+          </button>
+          <p class="auth-toggle">
+            Member? <span onclick="toggleAuth('login')">Sign In</span>
+          </p>
+        </div>
+        <button
+          class="btn-outline"
+          style="width: 100%; margin-top: 12px; border: none"
+          onclick="closeLogin()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <nav>
+      <h1><i class="fa-solid fa-graduation-cap"></i> HYF C55-5</h1>
+      <button
+        class="nav-btn active"
+        id="nav-catalog"
+        onclick="showSection('all-books')"
+      >
+        <i class="fa-solid fa-book-open"></i> Catalog
+      </button>
+      <button class="nav-btn" id="nav-loans" onclick="showSection('my-books')">
+        <i class="fa-solid fa-user-check"></i> My Loans
+      </button>
+      <div style="margin-top: auto" id="auth-status">
+        <button class="nav-btn" onclick="openLogin()">
+          <i class="fa-solid fa-sign-in"></i> Login
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <header>
+        <h2 id="section-title">Library Catalog</h2>
+        <p id="welcome-msg" style="color: var(--text-light); font-size: 0.9rem">
+          Public Access Mode
+        </p>
+      </header>
+
+      <section id="all-books-section">
+        <div class="card" style="border-top: 4px solid var(--primary)">
+          <h3>Global Import</h3>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr auto;
+              gap: 12px;
+              margin-top: 1rem;
+            "
+          >
+            <input
+              type="text"
+              id="apiSearchTitle"
+              placeholder="Search Title..."
+            />
+            <input
+              type="text"
+              id="apiSearchISBN"
+              placeholder="Search ISBN..."
+            />
+            <button class="btn-primary" onclick="searchExternalAPI()">
+              Search
+            </button>
+          </div>
+          <div id="api-results" class="hidden" style="margin-top: 20px">
+            <div id="api-results-list"></div>
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+              "
+            >
+              <button
+                class="btn-outline"
+                id="prevPageBtn"
+                onclick="changeAPIPage(-1)"
+              >
+                ←
+              </button>
+              <span id="pageIndicator">Page 1</span>
+              <button
+                class="btn-outline"
+                id="nextPageBtn"
+                onclick="changeAPIPage(1)"
+              >
+                →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>AI Insight</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="all-books-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="my-books-section" class="hidden">
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Borrowed On</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="my-books-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      let currentUser = null;
+      let apiResultsData = [];
+      let apiCurrentPage = 0;
+      const itemsPerPage = 5;
+
+      function openLogin() {
+        document.getElementById('login-modal').style.display = 'flex';
+      }
+      function closeLogin() {
+        document.getElementById('login-modal').style.display = 'none';
+      }
+      function toggleAuth(view) {
+        document
+          .getElementById('login-view')
+          .classList.toggle('hidden', view === 'reg');
+        document
+          .getElementById('register-view')
+          .classList.toggle('hidden', view === 'login');
+      }
+
+      async function login() {
+        const email = document
+          .getElementById('loginEmail')
+          .value.trim()
+          .toLowerCase();
+        const res = await fetch(
+          `/members/search?email=${encodeURIComponent(email)}`
+        );
+        if (res.ok) {
+          currentUser = await res.json();
+          document.getElementById('auth-status').innerHTML =
+            `<button class="nav-btn" onclick="location.reload()">Logout</button>`;
+          document.getElementById('welcome-msg').innerText =
+            `Logged in as: ${currentUser.name}`;
+          closeLogin();
+          loadAllBooks();
+        } else alert('Member not found.');
+      }
+
+      async function register() {
+        const name = document.getElementById('regName').value.trim();
+        const email = document
+          .getElementById('regEmail')
+          .value.trim()
+          .toLowerCase();
+        if (!name || !email) return alert('Fill all fields');
+
+        // FIXED URL: matching your router.post('/register')
+        const res = await fetch('/members/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email }),
+        });
+
+        if (res.ok) {
+          alert('Registration Success! Please login.');
+          toggleAuth('login');
+        } else {
+          const err = await res.json();
+          alert(`Error: ${err.error}`);
+        }
+      }
+
+      function showSection(section) {
+        if (section === 'my-books' && !currentUser) return openLogin();
+        document
+          .querySelectorAll('section')
+          .forEach((s) => s.classList.add('hidden'));
+        document
+          .querySelectorAll('.nav-btn')
+          .forEach((b) => b.classList.remove('active'));
+        document
+          .getElementById(`${section}-section`)
+          .classList.remove('hidden');
+        document
+          .getElementById(
+            `nav-${section === 'all-books' ? 'catalog' : 'loans'}`
+          )
+          .classList.add('active');
+        if (section === 'all-books') loadAllBooks();
+        if (section === 'my-books') loadMyBooks();
+      }
+
+      async function searchExternalAPI() {
+        const title = document.getElementById('apiSearchTitle').value.trim();
+        const isbn = document.getElementById('apiSearchISBN').value.trim();
+        const list = document.getElementById('api-results-list');
+        document.getElementById('api-results').classList.remove('hidden');
+        list.innerHTML = 'Searching...';
+
+        let query = isbn
+          ? `isbn=${isbn}`
+          : `title=${encodeURIComponent(title)}`;
+        const res = await fetch(`https://openlibrary.org/search.json?${query}`);
+        const data = await res.json();
+        apiResultsData = data.docs || [];
+        apiCurrentPage = 0;
+        renderAPIPage();
+      }
+
+      function renderAPIPage() {
+        const list = document.getElementById('api-results-list');
+        const start = apiCurrentPage * itemsPerPage;
+        const pageItems = apiResultsData.slice(start, start + itemsPerPage);
+
+        document.getElementById('pageIndicator').innerText =
+          `Page ${apiCurrentPage + 1}`;
+        document.getElementById('prevPageBtn').disabled = apiCurrentPage === 0;
+        document.getElementById('nextPageBtn').disabled =
+          (apiCurrentPage + 1) * itemsPerPage >= apiResultsData.length;
+
+        // FIXED: Restore Images
+        list.innerHTML = pageItems
+          .map((book) => {
+            const bAuthor = book.author_name ? book.author_name[0] : 'Unknown';
+            const bYear = book.first_publish_year || 'N/A';
+            const bCover = book.cover_i
+              ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+              : `https://via.placeholder.com/50x75?text=No+Cover`;
+
+            return `<div class="api-item">
+            <div class="book-info">
+                <img src="${bCover}" class="book-cover-img">
+                <div>
+                    <div style="font-weight:700;">${book.title}</div>
+                    <div style="font-size:0.8rem; color:var(--text-light)">${bAuthor} • ${bYear}</div>
+                </div>
+            </div>
+            <button class="btn-outline" onclick="confirmImport('${book.title.replace(/'/g, "\\'")}', '${bAuthor.replace(/'/g, "\\'")}', ${bYear})">Import</button>
+          </div>`;
+          })
+          .join('');
+      }
+
+      function changeAPIPage(dir) {
+        apiCurrentPage += dir;
+        renderAPIPage();
+      }
+
+      async function confirmImport(title, author, year) {
+        const res = await fetch('/books/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, author, year }),
+        });
+        if (res.ok) {
+          alert('Book Imported!');
+          loadAllBooks();
+        } else {
+          alert('Import failed (Book might already exist).');
+        }
+      }
+
+      async function loadAllBooks() {
+        const res = await fetch('/books');
+        const books = await res.json();
+        document.getElementById('all-books-tbody').innerHTML = books
+          .map(
+            (b) => `
+          <tr>
+            <td>${b.publication_year || '2024'}</td>
+            <td><strong>${b.title}</strong></td>
+            <td>${b.first_name} ${b.last_name}</td>
+            <td><button class="btn-outline" onclick="getTeaser('${b.title.replace(/'/g, "\\'")}', this)">✨ Insight</button><div class="teaser-box"></div></td>
+            <td><button class="btn-primary" onclick="loanBook(${b.book_id})">${currentUser ? 'Loan' : '🔒 Loan'}</button></td>
+          </tr>`
+          )
+          .join('');
+      }
+
+      async function loanBook(id) {
+        if (!currentUser) return openLogin();
+        const res = await fetch('/loans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            book_id: id,
+            member_id: currentUser.member_id,
+          }),
+        });
+        if (res.ok) alert('Successfully Loaned!');
+        else alert('Error: Book unavailable or already loaned.');
+      }
+
+      async function loadMyBooks() {
+        const res = await fetch('/loans');
+        const allLoans = await res.json();
+        const myBooks = allLoans.filter((l) => l.name === currentUser.name);
+
+        document.getElementById('my-books-tbody').innerHTML = myBooks
+          .map(
+            (b) => `
+          <tr>
+            <td>${new Date(b.loan_date).toLocaleDateString()}</td>
+            <td><strong>${b.title}</strong></td>
+            <td><span style="color:var(--success); font-weight:700;">● Borrowed</span></td>
+            <td><button class="btn-outline" onclick="returnBook(${b.loan_id})">Return</button></td>
+          </tr>`
+          )
+          .join('');
+      }
+
+      async function returnBook(loanId) {
+        const res = await fetch(`/loans/return/${loanId}`, { method: 'PATCH' });
+        if (res.ok) {
+          alert('Book Returned!');
+          loadMyBooks();
+        }
+      }
+
+      async function getTeaser(title, btn) {
+        const box = btn.nextElementSibling;
+        box.style.display = 'block';
+        box.innerText = 'Analyzing...';
+        const res = await fetch(
+          `/books/teaser?title=${encodeURIComponent(title)}`
+        );
+        const data = await res.json();
+        box.innerText = data.teaser;
+      }
+
+      window.onload = loadAllBooks;
+    </script>
+  </body>
+</html>
