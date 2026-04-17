@@ -16,6 +16,7 @@ CREATE TABLE books (
     FOREIGN KEY (author_id) REFERENCES authors(author_id)
 );
 
+
 INSERT INTO authors (first_name, last_name)
 VALUES ('George', 'Orwell');
 
@@ -40,6 +41,13 @@ WHERE book_id = 1;
 
 DELETE FROM books
 WHERE book_id = 1;
+
+CREATE TABLE IF NOT EXISTS members (
+    member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS loans (
   loan_id INTEGER PRIMARY KEY AUTOINCREMENT,
   book_id INTEGER NOT NULL,
@@ -50,3 +58,5 @@ CREATE TABLE IF NOT EXISTS loans (
   FOREIGN KEY (book_id) REFERENCES books(book_id),
   FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
+
+
