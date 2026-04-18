@@ -4,7 +4,7 @@ import { fetchBookByTitle, splitAuthorName } from '../apilibrary.js';
 import { getBookTeaser } from '../llm_helper.js';
 const router = express.Router();
 
-// get all books
+// get last 10 books
 router.get('/', (req, res) => {
   try {
     const books = db
@@ -21,6 +21,7 @@ router.get('/', (req, res) => {
       FROM books b
       JOIN authors a ON b.author_id = a.author_id
       ORDER BY b.book_id DESC
+      LIMIT 10
     `
       )
       .all();
@@ -162,13 +163,10 @@ router.delete('/:id', (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = db
-      .prepare(
-        `
-      DELETE FROM books WHERE book_id = ?
-    `
-      )
-      .run(id);
+    const result = db.transaction(() => {
+      db.prepare(`DELETE FROM loans WHERE book_id = ?`).run(id);
+      return db.prepare(`DELETE FROM books WHERE book_id = ?`).run(id);
+    })();
 
     if (result.changes === 0) {
       return res.status(404).json({
