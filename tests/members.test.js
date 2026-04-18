@@ -53,6 +53,16 @@ describe('Member API', () => {
   expect(res.body.error).toBe('This email is already registered.');
 });
 
+test('Register fails with missing data', async () => {
+  const res = await request(app)
+    .post('/members/register')
+    .send({ name: 'No Email' });
+
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('Missing data');
+});
+
+
   test('Delete an existing member', async () => {
     db.prepare('INSERT INTO members (name, email) VALUES (?, ?)').run(
       'Delete Test',
