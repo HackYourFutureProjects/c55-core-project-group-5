@@ -21,6 +21,7 @@ router.get('/', (req, res) => {
       FROM books b
       JOIN authors a ON b.author_id = a.author_id
       ORDER BY b.book_id DESC
+      LIMIT 10
     `
       )
       .all();
