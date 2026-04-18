@@ -8,15 +8,43 @@ router.post('/register', (req, res) => {
   const { name, email } = req.body;
   if (!name || !email) return res.status(400).json({ error: 'Missing data' });
 
+  const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+  if (!nameRegex.test(name.trim())) {
+    return res.status(400).json({
+      error: 'Invalid Name. Use only letters and spaces (2-50 characters).',
+    });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return res.status(400).json({ error: 'Invalid email format.' });
+  }
+
   try {
-    const info = db
-      .prepare('INSERT INTO members (name, email) VALUES (?, ?)')
-      .run(name, email);
-    res
-      .status(201)
-      .json({ member_id: info.lastInsertRowid, message: 'Member added' });
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedName = name.trim();
+
+    const existingMember = db
+      .prepare('SELECT email FROM members WHERE email = ?')
+      .get(normalizedEmail);
+    if (existingMember) {
+      return res
+        .status(409)
+        .json({ error: 'This email is already registered.' });
+    }
+
+    const stmt = db.prepare('INSERT INTO members (name, email) VALUES (?, ?)');
+    const info = stmt.run(normalizedName, normalizedEmail);
+
+    res.status(201).json({
+      message: 'Member registered successfully',
+      member_id: info.lastInsertRowid,
+    });
   } catch (err) {
-    res.status(400).json({ error: 'Email already exists', err });
+    console.error('Registration Error:', err.message);
+    res
+      .status(500)
+      .json({ error: 'Internal server error. Please try again later.' });
   }
 });
 
@@ -28,12 +56,27 @@ router.get('/', (req, res) => {
 
 //search member by email
 router.get('/search', (req, res) => {
-  const member = db
-    .prepare('SELECT * FROM members WHERE email = ?')
-    .get(req.query.email);
-  member ? res.json(member) : res.status(404).json({ error: 'Not found' });
-});
+  const { email } = req.query;
 
+  if (!email) {
+    return res.status(400).json({ error: 'Email parameter is required.' });
+  }
+
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+    const member = db
+      .prepare('SELECT * FROM members WHERE email = ?')
+      .get(normalizedEmail);
+
+    if (member) {
+      res.json(member);
+    } else {
+      res.status(404).json({ error: 'Member not found.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // get all loans for a specific member
 router.get('/:id/loans', (req, res) => {
   const { id } = req.params;
