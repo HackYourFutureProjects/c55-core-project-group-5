@@ -40,6 +40,19 @@ describe('Member API', () => {
     expect(res.body.email).toBe(TEST_EMAIL);
   });
 
+  test('Register duplicate email should fail', async () => {
+  db.prepare('INSERT INTO members (name, email) VALUES (?, ?)')
+    .run('Dup User', TEST_EMAIL);
+
+  const res = await request(app)
+    .post('/members/register')
+    .send({ name: 'Dup User', email: TEST_EMAIL });
+   
+
+  expect(res.status).toBe(409); 
+  expect(res.body.error).toBe('This email is already registered.');
+});
+
   test('Delete an existing member', async () => {
     db.prepare('INSERT INTO members (name, email) VALUES (?, ?)').run(
       'Delete Test',
