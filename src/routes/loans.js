@@ -30,12 +30,10 @@ CREATE TABLE IF NOT EXISTS loans (
 `
 ).run();
 
-db.prepare(
-  `
-INSERT OR IGNORE INTO members (member_id, name, email)
-VALUES (1, 'Test User', 'test@test.com');
-`
-).run();
+//db.prepare(`
+//INSERT OR IGNORE INTO members (member_id, name, email)
+//VALUES (1, 'Test User', 'test@test.com');
+//`).run();
 
 //loan a book
 router.post('/', (req, res) => {
