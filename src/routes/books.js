@@ -4,7 +4,7 @@ import { fetchBookByTitle, splitAuthorName } from '../apilibrary.js';
 import { getBookTeaser } from '../llm_helper.js';
 const router = express.Router();
 
-// get all books
+// get last 10 books
 router.get('/', (req, res) => {
   try {
     const books = db
