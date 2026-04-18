@@ -107,12 +107,20 @@ router.get('/:id/loans', (req, res) => {
 
 //deletee member
 router.delete('/:id', (req, res) => {
-  const result = db
-    .prepare('DELETE FROM members WHERE member_id = ?')
-    .run(req.params.id);
-  result.changes > 0
-    ? res.json({ message: 'Deleted' })
-    : res.status(404).json({ error: 'Not found' });
+  const { id } = req.params;
+  try {
+    db.prepare('DELETE FROM loans WHERE member_id = ?').run(id);
+
+    const info = db.prepare('DELETE FROM members WHERE member_id = ?').run(id);
+
+    if (info.changes > 0) {
+      res.json({ message: 'Member and their loan history deleted.' });
+    } else {
+      res.status(404).json({ error: 'Member not found.' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
