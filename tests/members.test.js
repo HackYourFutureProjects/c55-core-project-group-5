@@ -23,7 +23,7 @@ describe('Member API', () => {
       .send({ name: 'Test User', email: TEST_EMAIL });
 
     expect(res.status).toBe(201);
-    expect(res.body.message).toBe('Member added');
+    expect(res.body.message).toBe('Member registered successfully');
   });
 
   test('Search member by email', async () => {
@@ -53,6 +53,6 @@ describe('Member API', () => {
     const res = await request(app).delete(`/members/${member.member_id}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe('Deleted');
+    expect(res.body.message).toBe('Member and their loan history deleted.');
   });
 });
