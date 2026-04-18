@@ -1,5 +1,4 @@
 import express from 'express';
-import db from '../data/db.js';
 import bookRoutes from './routes/books.js';
 import memberRoutes from './routes/members.js';
 import loansRoutes from './routes/loans.js';

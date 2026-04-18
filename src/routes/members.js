@@ -16,7 +16,7 @@ router.post('/register', (req, res) => {
       .status(201)
       .json({ member_id: info.lastInsertRowid, message: 'Member added' });
   } catch (err) {
-    res.status(400).json({ error: 'Email already exists' });
+    res.status(400).json({ error: 'Email already exists', err });
   }
 });
 
@@ -39,7 +39,9 @@ router.get('/:id/loans', (req, res) => {
   const { id } = req.params;
 
   try {
-    const loans = db.prepare(`
+    const loans = db
+      .prepare(
+        `
       SELECT 
         l.loan_id,
         b.title,
@@ -50,7 +52,9 @@ router.get('/:id/loans', (req, res) => {
       JOIN books b ON l.book_id = b.book_id
       WHERE l.member_id = ?
       ORDER BY l.loan_date DESC
-    `).all(id);
+    `
+      )
+      .all(id);
 
     res.json(loans);
   } catch (err) {
