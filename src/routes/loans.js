@@ -5,16 +5,18 @@ const router = express.Router();
 
 //
 
-
-db.prepare(`
+db.prepare(
+  `
 CREATE TABLE IF NOT EXISTS members (
   member_id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL
 );
-`).run();
+`
+).run();
 
-db.prepare(`
+db.prepare(
+  `
 CREATE TABLE IF NOT EXISTS loans (
   loan_id INTEGER PRIMARY KEY AUTOINCREMENT,
   book_id INTEGER NOT NULL,
@@ -25,12 +27,15 @@ CREATE TABLE IF NOT EXISTS loans (
   FOREIGN KEY (book_id) REFERENCES books(book_id),
   FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
-`).run();
+`
+).run();
 
-db.prepare(`
+db.prepare(
+  `
 INSERT OR IGNORE INTO members (member_id, name, email)
 VALUES (1, 'Test User', 'test@test.com');
-`).run();
+`
+).run();
 
 //loan a book
 router.post('/', (req, res) => {
@@ -42,43 +47,50 @@ router.post('/', (req, res) => {
 
   try {
     //check if book is already loaned
-    const existingLoan = db.prepare(`
+    const existingLoan = db
+      .prepare(
+        `
       SELECT loan_id FROM loans
       WHERE book_id = ? AND returned = 0
-    `).get(book_id);
+    `
+      )
+      .get(book_id);
 
     if (existingLoan) {
       return res.status(409).json({
-        error: 'This book is already loaned'
+        error: 'This book is already loaned',
       });
     }
 
-    const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
       INSERT INTO loans (book_id, member_id, loan_date)
       VALUES (?, ?, datetime('now'))
-    `).run(book_id, member_id);
+    `
+      )
+      .run(book_id, member_id);
 
     res.json({
       message: 'Book loaned successfully',
-      loanId: result.lastInsertRowid
+      loanId: result.lastInsertRowid,
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-  //const stmt = db.prepare(`
+//const stmt = db.prepare(`
 //INSERT INTO loans (book_id, member_id, loan_date)
-   // VALUES (?, ?, datetime('now'))
-  //`);
+// VALUES (?, ?, datetime('now'))
+//`);
 
-  //const result = stmt.run(book_id, member_id);
+//const result = stmt.run(book_id, member_id);
 
-  //res.json({
-   // message: 'Book loaned successfully',
-    //loanId: result.lastInsertRowid
-  //});
+//res.json({
+// message: 'Book loaned successfully',
+//loanId: result.lastInsertRowid
+//});
 //});
 
 //return a book
@@ -99,7 +111,7 @@ router.patch('/return/:id', (req, res) => {
   }
 
   res.json({
-    message: 'Book returned successfully'
+    message: 'Book returned successfully',
   });
 });
 
@@ -110,6 +122,7 @@ router.get('/', (req, res) => {
       l.loan_id,
       b.title,
       m.name,
+      m.email,
       l.loan_date
     FROM loans l
     JOIN books b ON l.book_id = b.book_id
@@ -122,7 +135,7 @@ router.get('/', (req, res) => {
   res.json(loans);
 });
 
-//get loan history for a specific book 
+//get loan history for a specific book
 router.get('/book/:id', (req, res) => {
   const { id } = req.params;
 
@@ -143,5 +156,3 @@ router.get('/book/:id', (req, res) => {
 });
 
 export default router;
-
-
