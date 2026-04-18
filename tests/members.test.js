@@ -62,7 +62,6 @@ test('Register fails with missing data', async () => {
   expect(res.body.error).toBe('Missing data');
 });
 
-
   test('Delete an existing member', async () => {
     db.prepare('INSERT INTO members (name, email) VALUES (?, ?)').run(
       'Delete Test',
