@@ -42,6 +42,7 @@ WHERE book_id = 1;
 DELETE FROM books
 WHERE book_id = 1;
 
+
 CREATE TABLE IF NOT EXISTS members (
     member_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
