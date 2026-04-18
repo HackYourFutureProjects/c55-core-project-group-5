@@ -163,13 +163,10 @@ router.delete('/:id', (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = db
-      .prepare(
-        `
-      DELETE FROM books WHERE book_id = ?
-    `
-      )
-      .run(id);
+    const result = db.transaction(() => {
+      db.prepare(`DELETE FROM loans WHERE book_id = ?`).run(id);
+      return db.prepare(`DELETE FROM books WHERE book_id = ?`).run(id);
+    })();
 
     if (result.changes === 0) {
       return res.status(404).json({
