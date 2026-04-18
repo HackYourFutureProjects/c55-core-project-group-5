@@ -39,7 +39,7 @@ describe('Member API', () => {
     expect(res.status).toBe(200);
     expect(res.body.email).toBe(TEST_EMAIL);
   });
-
+   
   test('Register duplicate email should fail', async () => {
   db.prepare('INSERT INTO members (name, email) VALUES (?, ?)')
     .run('Dup User', TEST_EMAIL);
