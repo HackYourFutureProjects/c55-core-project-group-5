@@ -32,13 +32,5 @@ async function getBookTeaser(title) {
     return null;
   }
 }
-/*const book = { title: 'Darkly Dreaming Dexter' }; // Example book, to be removed later when we fetch the book from the database
-const teaserData = await getBookTeaser(book.title);
 
-if (teaserData) {
-  console.log(teaserData);
-} else {
-  console.log('Something went wrong.');
-}
-*/
 export { getBookTeaser };

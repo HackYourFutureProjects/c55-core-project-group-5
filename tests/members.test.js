@@ -39,28 +39,29 @@ describe('Member API', () => {
     expect(res.status).toBe(200);
     expect(res.body.email).toBe(TEST_EMAIL);
   });
-   
+
   test('Register duplicate email should fail', async () => {
-  db.prepare('INSERT INTO members (name, email) VALUES (?, ?)')
-    .run('Dup User', TEST_EMAIL);
+    db.prepare('INSERT INTO members (name, email) VALUES (?, ?)').run(
+      'Dup User',
+      TEST_EMAIL
+    );
 
-  const res = await request(app)
-    .post('/members/register')
-    .send({ name: 'Dup User', email: TEST_EMAIL });
-   
+    const res = await request(app)
+      .post('/members/register')
+      .send({ name: 'Dup User', email: TEST_EMAIL });
 
-  expect(res.status).toBe(409); 
-  expect(res.body.error).toBe('This email is already registered.');
-});
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe('This email is already registered.');
+  });
 
-test('Register fails with missing data', async () => {
-  const res = await request(app)
-    .post('/members/register')
-    .send({ name: 'No Email' });
+  test('Register fails with missing data', async () => {
+    const res = await request(app)
+      .post('/members/register')
+      .send({ name: 'No Email' });
 
-  expect(res.status).toBe(400);
-  expect(res.body.error).toBe('Missing data');
-});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Please provide both name and email.');
+  });
 
   test('Delete an existing member', async () => {
     db.prepare('INSERT INTO members (name, email) VALUES (?, ?)').run(

@@ -6,7 +6,10 @@ const router = express.Router();
 //register member
 router.post('/register', (req, res) => {
   const { name, email } = req.body;
-  if (!name || !email) return res.status(400).json({ error: 'Missing data' });
+  if (!name || !email)
+    return res
+      .status(400)
+      .json({ error: 'Please provide both name and email.' });
 
   const nameRegex = /^[a-zA-Z\s]{2,50}$/;
   if (!nameRegex.test(name.trim())) {
@@ -105,13 +108,16 @@ router.get('/:id/loans', (req, res) => {
   }
 });
 
-//deletee member
+//delete member and their loan history
 router.delete('/:id', (req, res) => {
   const { id } = req.params;
-  try {
-    db.prepare('DELETE FROM loans WHERE member_id = ?').run(id);
+  const deleteMemberTransaction = db.transaction((memberId) => {
+    db.prepare('DELETE FROM loans WHERE member_id = ?').run(memberId);
+    return db.prepare('DELETE FROM members WHERE member_id = ?').run(memberId);
+  });
 
-    const info = db.prepare('DELETE FROM members WHERE member_id = ?').run(id);
+  try {
+    const info = deleteMemberTransaction(id);
 
     if (info.changes > 0) {
       res.json({ message: 'Member and their loan history deleted.' });
