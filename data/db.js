@@ -1,15 +1,16 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 
-const dbPath = './data/book_library.db';
+const db = new Database('./data/book_library.db');
 
-if (!fs.existsSync(dbPath)) {
-  console.log('Database file not found:', dbPath);
-  process.exit(1);
+console.log('Connected to database');
+
+const schemaPath = './book_library.sql';
+
+if (fs.existsSync(schemaPath)) {
+  const schema = fs.readFileSync(schemaPath, 'utf8');
+  db.exec(schema);
+  
 }
-
-const db = new Database(dbPath);
-
-console.log('Connected to database:', dbPath);
 
 export default db;

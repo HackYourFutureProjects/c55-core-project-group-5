@@ -3,38 +3,6 @@ import db from '../../data/db.js';
 
 const router = express.Router();
 
-//
-
-db.prepare(
-  `
-CREATE TABLE IF NOT EXISTS members (
-  member_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL
-);
-`
-).run();
-
-db.prepare(
-  `
-CREATE TABLE IF NOT EXISTS loans (
-  loan_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  book_id INTEGER NOT NULL,
-  member_id INTEGER NOT NULL,
-  loan_date TEXT NOT NULL,
-  return_date TEXT,
-  returned INTEGER DEFAULT 0,
-  FOREIGN KEY (book_id) REFERENCES books(book_id),
-  FOREIGN KEY (member_id) REFERENCES members(member_id)
-);
-`
-).run();
-
-//db.prepare(`
-//INSERT OR IGNORE INTO members (member_id, name, email)
-//VALUES (1, 'Test User', 'test@test.com');
-//`).run();
-
 //loan a book
 router.post('/', (req, res) => {
   const { book_id, member_id } = req.body;

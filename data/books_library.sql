@@ -1,4 +1,4 @@
-CREATE TABLE authors (
+CREATE TABLE IF NOT EXISTS authors (
     author_id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL
@@ -6,7 +6,7 @@ CREATE TABLE authors (
 INSERT INTO authors (first_name, last_name)
 VALUES ("J.K", "Rowling");
 
-CREATE TABLE books (
+CREATE TABLE IF NOT EXISTS books (
     book_id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     isbn TEXT UNIQUE NOT NULL,
