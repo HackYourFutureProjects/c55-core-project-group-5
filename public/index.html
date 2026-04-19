@@ -439,17 +439,17 @@
     }
 
     /* ─── TEASER BOX ─── */
+    .teaser-row { display: none; }
+    .teaser-row.open { display: table-row; animation: slideDown 0.2s ease; }
+
     .teaser-box {
-      display: none;
-      margin-top: 8px;
       background: var(--gold-pale);
-      border: 1px solid rgba(201,168,76,0.25);
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 0.82rem;
-      line-height: 1.6;
+      border-top: 1px solid rgba(201,168,76,0.2);
+      border-bottom: 2px solid rgba(201,168,76,0.25);
+      padding: 14px 18px;
+      font-size: 0.855rem;
+      line-height: 1.65;
       color: #5a4810;
-      animation: slideDown 0.2s ease;
     }
 
     .teaser-cat {
@@ -692,7 +692,7 @@
 
     <!-- LOGIN VIEW -->
     <div id="login-view">
-      <h2>Member Login</h2>
+      <h2>Look Up Member</h2>
       <p class="modal-subtitle">Sign in with your registered email</p>
       <div class="modal-input-group">
         <label>Email Address</label>
@@ -707,12 +707,12 @@
         </button>
         <button class="btn btn-ghost" style="width:100%" onclick="closeLogin()">Cancel</button>
       </div>
-      <p class="modal-switch">New member? <span onclick="toggleAuth('reg')">Create Account</span></p>
+      <p class="modal-switch">New? <span onclick="toggleAuth('reg')">Become a New Member</span></p>
     </div>
 
     <!-- REGISTER VIEW -->
     <div id="register-view" class="hidden">
-      <h2>Join the Library</h2>
+      <h2>Become a New Member</h2>
       <p class="modal-subtitle">Create your member account</p>
       <div class="modal-input-group">
         <label>Full Name</label>
@@ -734,7 +734,7 @@
         </button>
         <button class="btn btn-ghost" style="width:100%" onclick="closeLogin()">Cancel</button>
       </div>
-      <p class="modal-switch">Already a member? <span onclick="toggleAuth('login')">Sign In</span></p>
+      <p class="modal-switch">Already a member? <span onclick="toggleAuth('login')">Look Up Member</span></p>
     </div>
   </div>
 </div>
@@ -773,7 +773,7 @@
       </div>
     </div>
     <button class="nav-btn" id="auth-btn" onclick="openLogin()">
-      <i class="fa-solid fa-right-to-bracket"></i> Login
+      <i class="fa-solid fa-right-to-bracket"></i> Look Up Member
     </button>
   </div>
 </nav>
@@ -800,14 +800,18 @@
     <!-- Online Search & Import -->
     <div class="card">
       <div class="card-title"><i class="fa-solid fa-globe"></i> Discover & Import from Open Library</div>
-      <div style="display:grid; grid-template-columns:1fr auto auto; gap:10px;">
+      <div style="display:grid; grid-template-columns:1fr auto auto auto; gap:10px;">
         <div class="input-wrap">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input type="text" id="apiSearchQuery" placeholder="Search by title or author…" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
         </div>
         <div class="input-wrap">
+          <i class="fa-solid fa-tag"></i>
+          <input type="text" id="apiSearchCategory" placeholder="Category…" style="width:160px;" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
+        </div>
+        <div class="input-wrap">
           <i class="fa-solid fa-barcode"></i>
-          <input type="text" id="apiSearchISBN" placeholder="ISBN…" style="width:160px;" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
+          <input type="text" id="apiSearchISBN" placeholder="ISBN…" style="width:140px;" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
         </div>
         <button class="btn btn-gold" onclick="searchExternalAPI()">
           <i class="fa-solid fa-magnifying-glass"></i> Search
@@ -831,12 +835,8 @@
 
     <!-- Local Catalog -->
     <div class="card">
-      <div class="card-title"><i class="fa-solid fa-warehouse"></i> Library Collection</div>
-      <div style="display:flex; gap:10px; margin-bottom:1.25rem;">
-        <div class="input-wrap" style="flex:1">
-          <i class="fa-solid fa-filter"></i>
-          <input type="text" id="localFilter" placeholder="Filter by title or author…" oninput="filterLocalBooks()" />
-        </div>
+      <div class="card-title"><i class="fa-solid fa-warehouse"></i> Recent 10 Imported Books</div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1.25rem;">
         <button class="btn btn-outline btn-sm" onclick="loadAllBooks()">
           <i class="fa-solid fa-rotate"></i> Refresh
         </button>
@@ -1034,9 +1034,10 @@
   //  No duplication — search logic mirrors backend normalizeBook from apilibrary.js
   // ══════════════════════════════════
   async function searchExternalAPI() {
-    const query  = document.getElementById('apiSearchQuery').value.trim();
-    const isbn   = document.getElementById('apiSearchISBN').value.trim();
-    if (!query && !isbn) { showToast('Enter a title, author or ISBN', 'info'); return; }
+    const query    = document.getElementById('apiSearchQuery').value.trim();
+    const category = document.getElementById('apiSearchCategory').value.trim();
+    const isbn     = document.getElementById('apiSearchISBN').value.trim();
+    if (!query && !category && !isbn) { showToast('Enter a title, author, category or ISBN', 'info'); return; }
 
     const resultsEl = document.getElementById('api-results');
     const listEl    = document.getElementById('api-results-list');
@@ -1047,7 +1048,9 @@
     if (isbn) {
       params.set('isbn', isbn);
     } else {
-      params.set('q', query);
+      // q= handles title/author fuzzy search; subject= filters by category
+      if (query) params.set('q', query);
+      if (category) params.set('subject', category);
     }
     params.set('limit', 30);
     params.set('fields', 'title,author_name,first_publish_year,isbn,cover_i,subject');
@@ -1136,14 +1139,6 @@
     renderLocalBooks(allBooksCache);
   }
 
-  function filterLocalBooks() {
-    const q = document.getElementById('localFilter').value.toLowerCase();
-    const filtered = allBooksCache.filter(b =>
-      b.title.toLowerCase().includes(q) ||
-      `${b.first_name} ${b.last_name}`.toLowerCase().includes(q)
-    );
-    renderLocalBooks(filtered);
-  }
 
   function renderLocalBooks(books) {
     const tbody = document.getElementById('all-books-tbody');
@@ -1174,12 +1169,16 @@
           <td>${b.genre ? `<span class="genre-tag">${b.genre}</span>` : '<span class="dim">—</span>'}</td>
           <td>
             <div class="actions-cell">
-              <button class="btn btn-outline btn-sm" onclick="toggleTeaser(${b.book_id}, '${safeTitle}', this)">
+              <button class="btn btn-outline btn-sm" id="teaser-btn-${b.book_id}" onclick="toggleTeaser(${b.book_id}, '${safeTitle}')">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Insight
               </button>
               ${loanBtn}
               ${deleteBtn}
             </div>
+          </td>
+        </tr>
+        <tr class="teaser-row" id="teaser-row-${b.book_id}">
+          <td colspan="5" style="padding:0;">
             <div class="teaser-box" id="teaser-${b.book_id}"></div>
           </td>
         </tr>`;
@@ -1214,16 +1213,30 @@
   // ══════════════════════════════════
   //  TEASER — uses /books/teaser?title= GET route
   // ══════════════════════════════════
-  async function toggleTeaser(id, title, btn) {
+  async function toggleTeaser(id, title) {
+    const row = document.getElementById(`teaser-row-${id}`);
     const box = document.getElementById(`teaser-${id}`);
-    if (box.style.display === 'block') { box.style.display = 'none'; return; }
-    box.style.display = 'block';
+    const btn = document.getElementById(`teaser-btn-${id}`);
+
+    // Toggle off if already open
+    if (row.classList.contains('open')) {
+      row.classList.remove('open');
+      btn.classList.remove('active');
+      return;
+    }
+
+    row.classList.add('open');
+    btn.classList.add('active');
+
+    // Only fetch if not already loaded
+    if (box.dataset.loaded) return;
     box.innerHTML = `<span class="teaser-cat"><i class="fa-solid fa-spinner spinner"></i> AI Librarian thinking…</span>`;
     try {
       const res  = await fetch(`/books/teaser?title=${encodeURIComponent(title)}`);
       const data = await res.json();
       if (data && data.teaser) {
         box.innerHTML = `<div class="teaser-cat"><i class="fa-solid fa-tags"></i> ${data.category || 'General'}</div>${data.teaser}`;
+        box.dataset.loaded = '1';
       } else {
         box.innerHTML = 'No insight available for this title.';
       }
@@ -1264,7 +1277,7 @@
         <td class="book-title-cell">${l.title}</td>
         <td class="dim">${new Date(l.loan_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</td>
         <td><span class="badge badge-gold"><i class="fa-solid fa-clock"></i> On Loan</span></td>
-        <td><button class="btn btn-outline btn-sm" onclick="returnBook(${l.loan_id}, false)"><i class="fa-solid fa-rotate-left"></i> Return</button></td>
+        <td><span class="badge badge-gold"><i class="fa-solid fa-clock"></i> Active</span></td>
       </tr>`).join('');
   }
 
