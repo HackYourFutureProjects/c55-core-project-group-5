@@ -78,8 +78,6 @@ c55-core-project-group-5/
 3. Configure environment variables
     Create a .env file in the project root:
         OPENAI_API_KEY=your_openai_api_key_here
-    Important:
-        The current version of the project requires OPENAI_API_KEY for the AI teaser functionality. If the key is missing, the LLM feature will not work, and depending on the current implementation of llm_helper.js, the server may fail to start.
 4. Run `npm start` to run the application
     The app should run at:
         http://localhost:3000
