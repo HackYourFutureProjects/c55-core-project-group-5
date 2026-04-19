@@ -32,33 +32,6 @@ router.get('/', (req, res) => {
   }
 });
 
-// add book manually
-/*router.post('/', (req, res) => {
-  const { title, isbn, publication_year, genre, author_id } = req.body;
-
-  if (!title || !author_id) {
-    return res.status(400).json({
-      error: 'title and author_id are required'
-    });
-  }
-
-  try {
-    const result = db.prepare(`
-      INSERT INTO books (title, isbn, publication_year, genre, author_id)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(title, isbn, publication_year, genre, author_id);
-
-    res.status(201).json({
-      message: 'Book added successfully',
-      book_id: result.lastInsertRowid
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-*/
-
 // import book "open library"
 router.post('/import', async (req, res) => {
   try {
