@@ -61,7 +61,7 @@ router.patch('/return/:id', (req, res) => {
       .run(id);
 
     if (info.changes > 0) {
-      res.json({ message: 'Book returned successfully.' });
+      res.json({ message: 'Book returned.' });
     } else {
       res.status(404).json({ error: 'Loan not found.' });
     }
