@@ -1,1095 +1,1487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HYF C55-5 · Library Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <style>
-    :root {
-      --ink: #0d0d0d;
-      --ink-light: #4a4a52;
-      --ink-ghost: #9898a8;
-      --parchment: #faf8f3;
-      --parchment-dark: #f0ece2;
-      --cream: #fffefb;
-      --gold: #c9a84c;
-      --gold-light: #e8c97a;
-      --gold-pale: #fdf6e3;
-      --green: #2d6a4f;
-      --green-light: #52b788;
-      --red: #9b2335;
-      --red-light: #e06c75;
-      --sidebar-w: 260px;
-      --radius: 16px;
-      --shadow: 0 4px 24px rgba(13,13,13,0.08);
-      --shadow-lg: 0 12px 48px rgba(13,13,13,0.14);
-      --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--parchment);
-      color: var(--ink);
-      display: flex;
-      min-height: 100vh;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 70% 0%, rgba(201,168,76,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 10% 90%, rgba(45,106,79,0.05) 0%, transparent 55%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ─── SIDEBAR ─── */
-    nav {
-      width: var(--sidebar-w);
-      background: var(--ink);
-      color: #fff;
-      padding: 0;
-      position: fixed;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      z-index: 200;
-      overflow: hidden;
-    }
-
-    nav::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 180px;
-      background: radial-gradient(ellipse at 50% 110%, rgba(201,168,76,0.18) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .nav-logo {
-      padding: 2rem 1.75rem 1.5rem;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-
-    .nav-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.01em;
-      line-height: 1.2;
-    }
-
-    .nav-logo-sub {
-      font-size: 0.72rem;
-      color: var(--gold);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-top: 4px;
-    }
-
-    .nav-items {
-      padding: 1.25rem 1rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .nav-btn {
-      background: transparent;
-      border: none;
-      color: #a8a8b8;
-      padding: 11px 14px;
-      width: 100%;
-      text-align: left;
-      cursor: pointer;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: all var(--transition);
-      position: relative;
-    }
-
-    .nav-btn i { width: 18px; text-align: center; font-size: 0.85rem; }
-
-    .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
-    .nav-btn.active {
-      color: var(--ink);
-      background: var(--gold);
-      font-weight: 600;
-    }
-
-    .nav-btn.active i { color: var(--ink); }
-
-    .nav-divider {
-      height: 1px;
-      background: rgba(255,255,255,0.07);
-      margin: 8px 0;
-    }
-
-    #auth-area {
-      padding: 1rem 1rem 1.5rem;
-      border-top: 1px solid rgba(255,255,255,0.07);
-      position: relative;
-      z-index: 1;
-    }
-
-    .user-chip {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
-
-    .user-avatar {
-      width: 32px; height: 32px;
-      background: var(--gold);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.8rem;
-      color: var(--ink);
-      flex-shrink: 0;
-    }
-
-    .user-name { font-size: 0.82rem; font-weight: 600; color: #fff; }
-    .user-role { font-size: 0.7rem; color: #a8a8b8; }
-
-    /* ─── MAIN ─── */
-    main {
-      flex: 1;
-      margin-left: var(--sidebar-w);
-      padding: 2.5rem 3rem;
-      max-width: calc(1400px + var(--sidebar-w));
-      position: relative;
-      z-index: 1;
-    }
-
-    .page-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-
-    .page-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1.2;
-    }
-
-    .page-sub {
-      color: var(--ink-light);
-      font-size: 0.875rem;
-      margin-top: 4px;
-    }
-
-    /* ─── CARDS ─── */
-    .card {
-      background: var(--cream);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(13,13,13,0.06);
-      margin-bottom: 1.5rem;
-      transition: box-shadow var(--transition);
-    }
-
-    .card-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title i { color: var(--gold); font-size: 0.9rem; }
-
-    /* ─── SEARCH BAR ─── */
-    /* search-grid removed — merged into single query box */
-
-    .input-wrap {
-      position: relative;
-    }
-
-    .input-wrap i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--ink-ghost);
-      font-size: 0.8rem;
-      pointer-events: none;
-    }
-
-    input[type="text"], input[type="email"], input[type="password"] {
-      width: 100%;
-      padding: 12px 14px 12px 38px;
-      border: 1px solid rgba(13,13,13,0.12);
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.875rem;
-      background: var(--parchment);
-      color: var(--ink);
-      outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-
-    input[type="text"]:focus, input[type="email"]:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
-    }
-
-    input.no-icon { padding-left: 14px; }
-
-    /* ─── BUTTONS ─── */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 7px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      font-size: 0.85rem;
-      padding: 11px 20px;
-      transition: all var(--transition);
-      white-space: nowrap;
-    }
-
-    .btn-gold {
-      background: var(--gold);
-      color: var(--ink);
-    }
-    .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,0.35); }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid rgba(13,13,13,0.15);
-      color: var(--ink-light);
-    }
-    .btn-outline:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
-
-    .btn-green {
-      background: var(--green);
-      color: #fff;
-    }
-    .btn-green:hover { background: #1f5237; transform: translateY(-1px); }
-
-    .btn-red {
-      background: transparent;
-      border: 1px solid rgba(155,35,53,0.25);
-      color: var(--red);
-    }
-    .btn-red:hover { background: #fef2f4; border-color: var(--red); }
-
-    .btn-ghost {
-      background: transparent;
-      border: none;
-      color: var(--ink-ghost);
-      padding: 8px 12px;
-    }
-    .btn-ghost:hover { color: var(--ink); }
-
-    .btn-sm { padding: 7px 14px; font-size: 0.78rem; border-radius: 8px; }
-
-    /* ─── AI BANNER ─── */
-    #ai-insight-container {
-      margin-bottom: 1.5rem;
-      display: none;
-    }
-
-    .ai-banner {
-      background: linear-gradient(135deg, #fffbef 0%, #fdf6e3 100%);
-      border: 1px solid rgba(201,168,76,0.3);
-      border-left: 4px solid var(--gold);
-      border-radius: var(--radius);
-      padding: 1.1rem 1.5rem;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .ai-banner i { color: var(--gold); margin-top: 2px; font-size: 1rem; flex-shrink: 0; }
-
-    .ai-banner-text {
-      color: #6b5a1a;
-      font-size: 0.875rem;
-      line-height: 1.6;
-      font-weight: 500;
-    }
-
-    /* ─── TABLES ─── */
-    .table-wrap { overflow-x: auto; }
-
-    table { width: 100%; border-collapse: collapse; }
-
-    thead th {
-      text-align: left;
-      padding: 10px 14px;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--ink-ghost);
-      border-bottom: 1px solid var(--parchment-dark);
-      font-weight: 600;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid rgba(13,13,13,0.04);
-      transition: background var(--transition);
-    }
-
-    tbody tr:hover { background: var(--parchment); }
-
-    td {
-      padding: 14px;
-      font-size: 0.875rem;
-      vertical-align: middle;
-      color: var(--ink);
-    }
-
-    td.dim { color: var(--ink-ghost); font-size: 0.82rem; }
-
-    .book-title-cell { font-weight: 600; }
-
-    /* ─── BOOK COVER THUMBNAIL ─── */
-    .book-cover {
-      width: 38px;
-      height: 54px;
-      border-radius: 4px;
-      object-fit: cover;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
-      flex-shrink: 0;
-    }
-
-    .book-cell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* ─── API RESULT CARDS ─── */
-    .api-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 14px;
-      margin-top: 1rem;
-    }
-
-    .api-card {
-      background: var(--parchment);
-      border: 1px solid rgba(13,13,13,0.08);
-      border-radius: var(--radius);
-      padding: 14px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      transition: box-shadow var(--transition), transform var(--transition);
-    }
-
-    .api-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-
-    .api-card-cover {
-      width: 52px;
-      height: 74px;
-      border-radius: 5px;
-      object-fit: cover;
-      flex-shrink: 0;
-      box-shadow: 2px 3px 10px rgba(0,0,0,0.18);
-    }
-
-    .api-card-info { flex: 1; min-width: 0; }
-    .api-card-title { font-weight: 700; font-size: 0.875rem; line-height: 1.3; margin-bottom: 3px; }
-    .api-card-author { font-size: 0.78rem; color: var(--ink-ghost); margin-bottom: 8px; }
-    .api-card-year { font-size: 0.72rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-
-    /* ─── PAGINATION ─── */
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 1.25rem;
-    }
-
-    .page-indicator {
-      font-size: 0.82rem;
-      color: var(--ink-ghost);
-      padding: 0 8px;
-    }
-
-    /* ─── TEASER BOX ─── */
-    .teaser-row { display: none; }
-    .teaser-row.open { display: table-row; animation: slideDown 0.2s ease; }
-
-    .teaser-box {
-      background: var(--gold-pale);
-      border-top: 1px solid rgba(201,168,76,0.2);
-      border-bottom: 2px solid rgba(201,168,76,0.25);
-      padding: 14px 18px;
-      font-size: 0.855rem;
-      line-height: 1.65;
-      color: #5a4810;
-    }
-
-    .teaser-cat {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--gold);
-      margin-bottom: 5px;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ─── STATUS BADGE ─── */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-
-    .badge-green { background: #d8f3dc; color: #1b4332; }
-    .badge-red { background: #fde8e8; color: #7f1d1d; }
-    .badge-gold { background: var(--gold-pale); color: #7a5a00; }
-
-    /* ─── MODAL ─── */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(10,10,14,0.7);
-      backdrop-filter: blur(8px);
-      z-index: 9000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: var(--cream);
-      border-radius: 24px;
-      padding: 2.5rem;
-      width: 420px;
-      max-width: calc(100vw - 2rem);
-      box-shadow: var(--shadow-lg);
-      animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    @keyframes modalIn {
-      from { opacity: 0; transform: scale(0.93) translateY(10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .modal-logo {
-      text-align: center;
-      margin-bottom: 1.75rem;
-    }
-
-    .modal-logo-icon {
-      width: 56px; height: 56px;
-      background: var(--ink);
-      border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 12px;
-    }
-
-    .modal-logo-icon i { color: var(--gold); font-size: 1.4rem; }
-
-    .modal h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.4rem;
-      text-align: center;
-      margin-bottom: 4px;
-    }
-
-    .modal-subtitle {
-      font-size: 0.82rem;
-      color: var(--ink-ghost);
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-input-group {
-      margin-bottom: 12px;
-    }
-
-    .modal-input-group label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--ink-light);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .modal-input-group input {
-      width: 100%;
-    }
-
-    .modal-actions { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 8px; }
-
-    .modal-switch {
-      text-align: center;
-      font-size: 0.82rem;
-      color: var(--ink-ghost);
-      margin-top: 0.75rem;
-    }
-
-    .modal-switch span {
-      color: var(--gold);
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .modal-switch span:hover { text-decoration: underline; }
-
-    .toast {
-      position: fixed;
-      bottom: 2rem; right: 2rem;
-      background: var(--ink);
-      color: #fff;
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      box-shadow: var(--shadow-lg);
-      z-index: 9999;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      animation: toastIn 0.3s ease;
-    }
-
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .toast.success i { color: var(--green-light); }
-    .toast.error i { color: var(--red-light); }
-    .toast.info i { color: var(--gold); }
-
-    /* ─── EMPTY STATE ─── */
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--ink-ghost);
-    }
-
-    .empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; display: block; }
-    .empty-state p { font-size: 0.9rem; }
-
-    /* ─── SPINNER ─── */
-    .spinner { animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ─── SECTION ─── */
-    section { animation: fadeIn 0.25s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-    .hidden { display: none !important; }
-
-    /* ─── MEMBER CARD ─── */
-    .member-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px;
-      background: var(--parchment);
-      border-radius: 12px;
-      border: 1px solid rgba(13,13,13,0.06);
-      transition: box-shadow var(--transition);
-    }
-
-    .member-card:hover { box-shadow: var(--shadow); }
-
-    .member-avatar {
-      width: 42px; height: 42px;
-      background: linear-gradient(135deg, var(--gold) 0%, #a07820 100%);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 0.9rem;
-      color: var(--ink);
-      flex-shrink: 0;
-    }
-
-    .members-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
-    }
-
-    /* ─── GENRE TAG ─── */
-    .genre-tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 8px;
-      background: rgba(13,13,13,0.05);
-      border-radius: 6px;
-      font-size: 0.72rem;
-      color: var(--ink-light);
-    }
-
-    /* ─── SECTION HEADERS ─── */
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--ink-ghost);
-      margin-bottom: 0.75rem;
-    }
-
-    /* ─── Loan actions ─── */
-    .actions-cell { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  </style>
-</head>
-<body>
-
-<!-- ═══════════════════════════════ TOAST ═══════════════════════════════ -->
-<div class="toast" id="toast">
-  <i class="fa-solid fa-circle-check"></i>
-  <span id="toast-msg">Done</span>
-</div>
-
-<!-- ═══════════════════════════════ LOGIN MODAL ═══════════════════════════════ -->
-<div class="modal-overlay" id="login-modal">
-  <div class="modal">
-    <div class="modal-logo">
-      <div class="modal-logo-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HYF C55-5 · Library Portal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --ink: #0d0d0d;
+        --ink-light: #4a4a52;
+        --ink-ghost: #9898a8;
+        --parchment: #faf8f3;
+        --parchment-dark: #f0ece2;
+        --cream: #fffefb;
+        --gold: #c9a84c;
+        --gold-light: #e8c97a;
+        --gold-pale: #fdf6e3;
+        --green: #2d6a4f;
+        --green-light: #52b788;
+        --red: #9b2335;
+        --red-light: #e06c75;
+        --sidebar-w: 260px;
+        --radius: 16px;
+        --shadow: 0 4px 24px rgba(13, 13, 13, 0.08);
+        --shadow-lg: 0 12px 48px rgba(13, 13, 13, 0.14);
+        --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--parchment);
+        color: var(--ink);
+        display: flex;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse 80% 60% at 70% 0%,
+            rgba(201, 168, 76, 0.06) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 10% 90%,
+            rgba(45, 106, 79, 0.05) 0%,
+            transparent 55%
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ─── SIDEBAR ─── */
+      nav {
+        width: var(--sidebar-w);
+        background: var(--ink);
+        color: #fff;
+        padding: 0;
+        position: fixed;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        z-index: 200;
+        overflow: hidden;
+      }
+
+      nav::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+        background: radial-gradient(
+          ellipse at 50% 110%,
+          rgba(201, 168, 76, 0.18) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+
+      .nav-logo {
+        padding: 2rem 1.75rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .nav-logo-text {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.01em;
+        line-height: 1.2;
+      }
+
+      .nav-logo-sub {
+        font-size: 0.72rem;
+        color: var(--gold);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 4px;
+      }
+
+      .nav-items {
+        padding: 1.25rem 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .nav-btn {
+        background: transparent;
+        border: none;
+        color: #a8a8b8;
+        padding: 11px 14px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all var(--transition);
+        position: relative;
+      }
+
+      .nav-btn i {
+        width: 18px;
+        text-align: center;
+        font-size: 0.85rem;
+      }
+
+      .nav-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .nav-btn.active {
+        color: var(--ink);
+        background: var(--gold);
+        font-weight: 600;
+      }
+
+      .nav-btn.active i {
+        color: var(--ink);
+      }
+
+      .nav-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.07);
+        margin: 8px 0;
+      }
+
+      #auth-area {
+        padding: 1rem 1rem 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        position: relative;
+        z-index: 1;
+      }
+
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        margin-bottom: 8px;
+      }
+
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        background: var(--gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--ink);
+        flex-shrink: 0;
+      }
+
+      .user-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #fff;
+      }
+      .user-role {
+        font-size: 0.7rem;
+        color: #a8a8b8;
+      }
+
+      /* ─── MAIN ─── */
+      main {
+        flex: 1;
+        margin-left: var(--sidebar-w);
+        padding: 2.5rem 3rem;
+        max-width: calc(1400px + var(--sidebar-w));
+        position: relative;
+        z-index: 1;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+
+      .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--ink);
+        line-height: 1.2;
+      }
+
+      .page-sub {
+        color: var(--ink-light);
+        font-size: 0.875rem;
+        margin-top: 4px;
+      }
+
+      /* ─── CARDS ─── */
+      .card {
+        background: var(--cream);
+        border-radius: var(--radius);
+        padding: 1.75rem;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(13, 13, 13, 0.06);
+        margin-bottom: 1.5rem;
+        transition: box-shadow var(--transition);
+      }
+
+      .card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card-title i {
+        color: var(--gold);
+        font-size: 0.9rem;
+      }
+
+      /* ─── SEARCH BAR ─── */
+      /* search-grid removed — merged into single query box */
+
+      .input-wrap {
+        position: relative;
+      }
+
+      .input-wrap i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ink-ghost);
+        font-size: 0.8rem;
+        pointer-events: none;
+      }
+
+      input[type='text'],
+      input[type='email'],
+      input[type='password'] {
+        width: 100%;
+        padding: 12px 14px 12px 38px;
+        border: 1px solid rgba(13, 13, 13, 0.12);
+        border-radius: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        background: var(--parchment);
+        color: var(--ink);
+        outline: none;
+        transition:
+          border-color var(--transition),
+          box-shadow var(--transition);
+      }
+
+      input[type='text']:focus,
+      input[type='email']:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+      }
+
+      input.no-icon {
+        padding-left: 14px;
+      }
+
+      /* ─── BUTTONS ─── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 11px 20px;
+        transition: all var(--transition);
+        white-space: nowrap;
+      }
+
+      .btn-gold {
+        background: var(--gold);
+        color: var(--ink);
+      }
+      .btn-gold:hover {
+        background: var(--gold-light);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(201, 168, 76, 0.35);
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(13, 13, 13, 0.15);
+        color: var(--ink-light);
+      }
+      .btn-outline:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+        background: var(--gold-pale);
+      }
+
+      .btn-green {
+        background: var(--green);
+        color: #fff;
+      }
+      .btn-green:hover {
+        background: #1f5237;
+        transform: translateY(-1px);
+      }
+
+      .btn-red {
+        background: transparent;
+        border: 1px solid rgba(155, 35, 53, 0.25);
+        color: var(--red);
+      }
+      .btn-red:hover {
+        background: #fef2f4;
+        border-color: var(--red);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        border: none;
+        color: var(--ink-ghost);
+        padding: 8px 12px;
+      }
+      .btn-ghost:hover {
+        color: var(--ink);
+      }
+
+      .btn-sm {
+        padding: 7px 14px;
+        font-size: 0.78rem;
+        border-radius: 8px;
+      }
+
+      /* ─── AI BANNER ─── */
+      #ai-insight-container {
+        margin-bottom: 1.5rem;
+        display: none;
+      }
+
+      .ai-banner {
+        background: linear-gradient(135deg, #fffbef 0%, #fdf6e3 100%);
+        border: 1px solid rgba(201, 168, 76, 0.3);
+        border-left: 4px solid var(--gold);
+        border-radius: var(--radius);
+        padding: 1.1rem 1.5rem;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .ai-banner i {
+        color: var(--gold);
+        margin-top: 2px;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+
+      .ai-banner-text {
+        color: #6b5a1a;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      /* ─── TABLES ─── */
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead th {
+        text-align: left;
+        padding: 10px 14px;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--ink-ghost);
+        border-bottom: 1px solid var(--parchment-dark);
+        font-weight: 600;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid rgba(13, 13, 13, 0.04);
+        transition: background var(--transition);
+      }
+
+      tbody tr:hover {
+        background: var(--parchment);
+      }
+
+      td {
+        padding: 14px;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        color: var(--ink);
+      }
+
+      td.dim {
+        color: var(--ink-ghost);
+        font-size: 0.82rem;
+      }
+
+      .book-title-cell {
+        font-weight: 600;
+      }
+
+      /* ─── BOOK COVER THUMBNAIL ─── */
+      .book-cover {
+        width: 38px;
+        height: 54px;
+        border-radius: 4px;
+        object-fit: cover;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+        flex-shrink: 0;
+      }
+
+      .book-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* ─── API RESULT CARDS ─── */
+      .api-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+        margin-top: 1rem;
+      }
+
+      .api-card {
+        background: var(--parchment);
+        border: 1px solid rgba(13, 13, 13, 0.08);
+        border-radius: var(--radius);
+        padding: 14px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        transition:
+          box-shadow var(--transition),
+          transform var(--transition);
+      }
+
+      .api-card:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+      }
+
+      .api-card-cover {
+        width: 52px;
+        height: 74px;
+        border-radius: 5px;
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.18);
+      }
+
+      .api-card-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .api-card-title {
+        font-weight: 700;
+        font-size: 0.875rem;
+        line-height: 1.3;
+        margin-bottom: 3px;
+      }
+      .api-card-author {
+        font-size: 0.78rem;
+        color: var(--ink-ghost);
+        margin-bottom: 8px;
+      }
+      .api-card-year {
+        font-size: 0.72rem;
+        color: var(--gold);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      /* ─── PAGINATION ─── */
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 1.25rem;
+      }
+
+      .page-indicator {
+        font-size: 0.82rem;
+        color: var(--ink-ghost);
+        padding: 0 8px;
+      }
+
+      /* ─── TEASER BOX ─── */
+      .teaser-row {
+        display: none;
+      }
+      .teaser-row.open {
+        display: table-row;
+        animation: slideDown 0.2s ease;
+      }
+
+      .teaser-box {
+        background: var(--gold-pale);
+        border-top: 1px solid rgba(201, 168, 76, 0.2);
+        border-bottom: 2px solid rgba(201, 168, 76, 0.25);
+        padding: 14px 18px;
+        font-size: 0.855rem;
+        line-height: 1.65;
+        color: #5a4810;
+      }
+
+      .teaser-cat {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gold);
+        margin-bottom: 5px;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ─── STATUS BADGE ─── */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+
+      .badge-green {
+        background: #d8f3dc;
+        color: #1b4332;
+      }
+      .badge-red {
+        background: #fde8e8;
+        color: #7f1d1d;
+      }
+      .badge-gold {
+        background: var(--gold-pale);
+        color: #7a5a00;
+      }
+
+      /* ─── MODAL ─── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 10, 14, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 9000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.open {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--cream);
+        border-radius: 24px;
+        padding: 2.5rem;
+        width: 420px;
+        max-width: calc(100vw - 2rem);
+        box-shadow: var(--shadow-lg);
+        animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: scale(0.93) translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .modal-logo {
+        text-align: center;
+        margin-bottom: 1.75rem;
+      }
+
+      .modal-logo-icon {
+        width: 56px;
+        height: 56px;
+        background: var(--ink);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+      }
+
+      .modal-logo-icon i {
+        color: var(--gold);
+        font-size: 1.4rem;
+      }
+
+      .modal h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        text-align: center;
+        margin-bottom: 4px;
+      }
+
+      .modal-subtitle {
+        font-size: 0.82rem;
+        color: var(--ink-ghost);
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-input-group {
+        margin-bottom: 12px;
+      }
+
+      .modal-input-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--ink-light);
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .modal-input-group input {
+        width: 100%;
+      }
+
+      .modal-actions {
+        margin-top: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .modal-switch {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--ink-ghost);
+        margin-top: 0.75rem;
+      }
+
+      .modal-switch span {
+        color: var(--gold);
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .modal-switch span:hover {
+        text-decoration: underline;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: var(--ink);
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        box-shadow: var(--shadow-lg);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        animation: toastIn 0.3s ease;
+      }
+
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .toast.success i {
+        color: var(--green-light);
+      }
+      .toast.error i {
+        color: var(--red-light);
+      }
+      .toast.info i {
+        color: var(--gold);
+      }
+
+      /* ─── EMPTY STATE ─── */
+      .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--ink-ghost);
+      }
+
+      .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        opacity: 0.4;
+        display: block;
+      }
+      .empty-state p {
+        font-size: 0.9rem;
+      }
+
+      /* ─── SPINNER ─── */
+      .spinner {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ─── SECTION ─── */
+      section {
+        animation: fadeIn 0.25s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* ─── MEMBER CARD ─── */
+      .member-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px;
+        background: var(--parchment);
+        border-radius: 12px;
+        border: 1px solid rgba(13, 13, 13, 0.06);
+        transition: box-shadow var(--transition);
+      }
+
+      .member-card:hover {
+        box-shadow: var(--shadow);
+      }
+
+      .member-avatar {
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, var(--gold) 0%, #a07820 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: var(--ink);
+        flex-shrink: 0;
+      }
+
+      .members-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+      }
+
+      /* ─── GENRE TAG ─── */
+      .genre-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        background: rgba(13, 13, 13, 0.05);
+        border-radius: 6px;
+        font-size: 0.72rem;
+        color: var(--ink-light);
+      }
+
+      /* ─── SECTION HEADERS ─── */
+      .section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-ghost);
+        margin-bottom: 0.75rem;
+      }
+
+      /* ─── Loan actions ─── */
+      .actions-cell {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════ TOAST ═══════════════════════════════ -->
+    <div class="toast" id="toast">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toast-msg">Done</span>
     </div>
 
-    <!-- LOGIN VIEW -->
-    <div id="login-view">
-      <h2>Look Up Member</h2>
-      <p class="modal-subtitle">Sign in with your registered email</p>
-      <div class="modal-input-group">
-        <label>Email Address</label>
-        <div class="input-wrap">
-          <i class="fa-regular fa-envelope"></i>
-          <input type="email" id="loginEmail" placeholder="you@example.com" />
+    <!-- ═══════════════════════════════ LOGIN MODAL ═══════════════════════════════ -->
+    <div class="modal-overlay" id="login-modal">
+      <div class="modal">
+        <div class="modal-logo">
+          <div class="modal-logo-icon">
+            <i class="fa-solid fa-book-open-reader"></i>
+          </div>
+        </div>
+
+        <!-- LOGIN VIEW -->
+        <div id="login-view">
+          <h2>Look Up Member</h2>
+          <p class="modal-subtitle">Sign in with your registered email</p>
+          <div class="modal-input-group">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-envelope"></i>
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-gold" style="width: 100%" onclick="login()">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+            </button>
+            <button
+              class="btn btn-ghost"
+              style="width: 100%"
+              onclick="closeLogin()"
+            >
+              Cancel
+            </button>
+          </div>
+          <p class="modal-switch">
+            New? <span onclick="toggleAuth('reg')">Become a New Member</span>
+          </p>
+        </div>
+
+        <!-- REGISTER VIEW -->
+        <div id="register-view" class="hidden">
+          <h2>Become a New Member</h2>
+          <p class="modal-subtitle">Create your member account</p>
+          <div class="modal-input-group">
+            <label>Full Name</label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="regName" placeholder="Jane Doe" />
+            </div>
+          </div>
+          <div class="modal-input-group">
+            <label>Email Address</label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="regEmail" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button
+              class="btn btn-gold"
+              style="width: 100%"
+              onclick="register()"
+            >
+              <i class="fa-solid fa-user-plus"></i> Register
+            </button>
+            <button
+              class="btn btn-ghost"
+              style="width: 100%"
+              onclick="closeLogin()"
+            >
+              Cancel
+            </button>
+          </div>
+          <p class="modal-switch">
+            Already a member?
+            <span onclick="toggleAuth('login')">Look Up Member</span>
+          </p>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn btn-gold" style="width:100%" onclick="login()">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+    </div>
+
+    <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+    <nav>
+      <div class="nav-logo">
+        <div class="nav-logo-text">
+          <i
+            class="fa-solid fa-book"
+            style="color: var(--gold); margin-right: 8px"
+          ></i
+          >HYF Library
+        </div>
+        <div class="nav-logo-sub">C55 · Group 5</div>
+      </div>
+
+      <div class="nav-items">
+        <button
+          class="nav-btn active"
+          id="nav-catalog"
+          onclick="showSection('all-books')"
+        >
+          <i class="fa-solid fa-books"></i> Catalog
         </button>
-        <button class="btn btn-ghost" style="width:100%" onclick="closeLogin()">Cancel</button>
-      </div>
-      <p class="modal-switch">New? <span onclick="toggleAuth('reg')">Become a New Member</span></p>
-    </div>
-
-    <!-- REGISTER VIEW -->
-    <div id="register-view" class="hidden">
-      <h2>Become a New Member</h2>
-      <p class="modal-subtitle">Create your member account</p>
-      <div class="modal-input-group">
-        <label>Full Name</label>
-        <div class="input-wrap">
-          <i class="fa-regular fa-user"></i>
-          <input type="text" id="regName" placeholder="Jane Doe" />
-        </div>
-      </div>
-      <div class="modal-input-group">
-        <label>Email Address</label>
-        <div class="input-wrap">
-          <i class="fa-regular fa-envelope"></i>
-          <input type="email" id="regEmail" placeholder="you@example.com" />
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-gold" style="width:100%" onclick="register()">
-          <i class="fa-solid fa-user-plus"></i> Register
+        <button
+          class="nav-btn"
+          id="nav-loans"
+          onclick="showSection('my-books')"
+        >
+          <i class="fa-solid fa-bookmark"></i> My Loans
         </button>
-        <button class="btn btn-ghost" style="width:100%" onclick="closeLogin()">Cancel</button>
+        <div class="nav-divider"></div>
+        <button
+          class="nav-btn public-only"
+          id="nav-registry"
+          onclick="showSection('admin-loans')"
+        >
+          <i class="fa-solid fa-list-check"></i> Loan Registry
+        </button>
+        <button
+          class="nav-btn public-only"
+          id="nav-members"
+          onclick="showSection('all-members')"
+        >
+          <i class="fa-solid fa-users"></i> Members
+        </button>
       </div>
-      <p class="modal-switch">Already a member? <span onclick="toggleAuth('login')">Look Up Member</span></p>
-    </div>
-  </div>
-</div>
 
-<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
-<nav>
-  <div class="nav-logo">
-    <div class="nav-logo-text"><i class="fa-solid fa-book" style="color:var(--gold); margin-right:8px;"></i>HYF Library</div>
-    <div class="nav-logo-sub">C55 · Group 5</div>
-  </div>
+      <div id="auth-area">
+        <div id="user-chip-wrap" class="hidden">
+          <div class="user-chip">
+            <div class="user-avatar" id="user-initials">?</div>
+            <div>
+              <div class="user-name" id="user-name-display">Member</div>
+              <div class="user-role">Active Member</div>
+            </div>
+          </div>
+        </div>
+        <button class="nav-btn" id="auth-btn" onclick="openLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> Look Up Member
+        </button>
+      </div>
+    </nav>
 
-  <div class="nav-items">
-    <button class="nav-btn active" id="nav-catalog" onclick="showSection('all-books')">
-      <i class="fa-solid fa-books"></i> Catalog
-    </button>
-    <button class="nav-btn" id="nav-loans" onclick="showSection('my-books')">
-      <i class="fa-solid fa-bookmark"></i> My Loans
-    </button>
-    <div class="nav-divider"></div>
-    <button class="nav-btn public-only" id="nav-registry" onclick="showSection('admin-loans')">
-      <i class="fa-solid fa-list-check"></i> Loan Registry
-    </button>
-    <button class="nav-btn public-only" id="nav-members" onclick="showSection('all-members')">
-      <i class="fa-solid fa-users"></i> Members
-    </button>
-  </div>
-
-  <div id="auth-area">
-    <div id="user-chip-wrap" class="hidden">
-      <div class="user-chip">
-        <div class="user-avatar" id="user-initials">?</div>
+    <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+    <main>
+      <div class="page-header">
         <div>
-          <div class="user-name" id="user-name-display">Member</div>
-          <div class="user-role">Active Member</div>
+          <h1 class="page-title" id="section-title">Library Catalog</h1>
+          <p class="page-sub" id="welcome-msg">Browse and discover books</p>
         </div>
       </div>
-    </div>
-    <button class="nav-btn" id="auth-btn" onclick="openLogin()">
-      <i class="fa-solid fa-right-to-bracket"></i> Look Up Member
-    </button>
-  </div>
-</nav>
 
-<!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
-<main>
-  <div class="page-header">
-    <div>
-      <h1 class="page-title" id="section-title">Library Catalog</h1>
-      <p class="page-sub" id="welcome-msg">Browse and discover books</p>
-    </div>
-  </div>
-
-  <!-- AI INSIGHT -->
-  <div id="ai-insight-container">
-    <div class="ai-banner">
-      <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <div class="ai-banner-text" id="ai-insight-text">Welcome! AI librarian is ready.</div>
-    </div>
-  </div>
-
-  <!-- ── CATALOG SECTION ── -->
-  <section id="all-books-section">
-    <!-- Online Search & Import -->
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-globe"></i> Discover & Import from Open Library</div>
-      <div style="display:grid; grid-template-columns:1fr auto auto auto; gap:10px;">
-        <div class="input-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="apiSearchQuery" placeholder="Search by title or author…" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
-        </div>
-        <div class="input-wrap">
-          <i class="fa-solid fa-tag"></i>
-          <input type="text" id="apiSearchCategory" placeholder="Category…" style="width:160px;" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
-        </div>
-        <div class="input-wrap">
-          <i class="fa-solid fa-barcode"></i>
-          <input type="text" id="apiSearchISBN" placeholder="ISBN…" style="width:140px;" onkeydown="if(event.key==='Enter') searchExternalAPI()" />
-        </div>
-        <button class="btn btn-gold" onclick="searchExternalAPI()">
-          <i class="fa-solid fa-magnifying-glass"></i> Search
-        </button>
-      </div>
-
-      <div id="api-results" class="hidden" style="margin-top:1.25rem;">
-        <div class="section-label" id="api-result-count">Results</div>
-        <div class="api-grid" id="api-results-list"></div>
-        <div class="pagination">
-          <button class="btn btn-outline btn-sm" id="prev-page-btn" onclick="changeAPIPage(-1)">
-            <i class="fa-solid fa-chevron-left"></i> Prev
-          </button>
-          <span class="page-indicator" id="page-indicator">Page 1</span>
-          <button class="btn btn-outline btn-sm" id="next-page-btn" onclick="changeAPIPage(1)">
-            Next <i class="fa-solid fa-chevron-right"></i>
-          </button>
+      <!-- AI INSIGHT -->
+      <div id="ai-insight-container">
+        <div class="ai-banner">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <div class="ai-banner-text" id="ai-insight-text">
+            Welcome! AI librarian is ready.
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Local Catalog -->
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-warehouse"></i> Recent 10 Imported Books</div>
-      <div style="display:flex; justify-content:flex-end; margin-bottom:1.25rem;">
-        <button class="btn btn-outline btn-sm" onclick="loadAllBooks()">
-          <i class="fa-solid fa-rotate"></i> Refresh
-        </button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Book</th>
-              <th>Author</th>
-              <th>Year</th>
-              <th>Genre</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="all-books-tbody">
-            <tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-spinner spinner"></i><p>Loading…</p></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+      <!-- ── CATALOG SECTION ── -->
+      <section id="all-books-section">
+        <!-- Online Search & Import -->
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-globe"></i> Discover & Import from Open
+            Library
+          </div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr auto auto auto;
+              gap: 10px;
+            "
+          >
+            <div class="input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="text"
+                id="apiSearchQuery"
+                placeholder="Search by title or author…"
+                onkeydown="if (event.key === 'Enter') searchExternalAPI();"
+              />
+            </div>
+            <div class="input-wrap">
+              <i class="fa-solid fa-tag"></i>
+              <input
+                type="text"
+                id="apiSearchCategory"
+                placeholder="Category…"
+                style="width: 160px"
+                onkeydown="if (event.key === 'Enter') searchExternalAPI();"
+              />
+            </div>
+            <div class="input-wrap">
+              <i class="fa-solid fa-barcode"></i>
+              <input
+                type="text"
+                id="apiSearchISBN"
+                placeholder="ISBN…"
+                style="width: 140px"
+                onkeydown="if (event.key === 'Enter') searchExternalAPI();"
+              />
+            </div>
+            <button class="btn btn-gold" onclick="searchExternalAPI()">
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+          </div>
 
-  <!-- ── MY LOANS ── -->
-  <section id="my-books-section" class="hidden">
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-bookmark"></i> My Active Loans</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Book</th>
-              <th>Borrowed</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="my-books-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+          <div id="api-results" class="hidden" style="margin-top: 1.25rem">
+            <div class="section-label" id="api-result-count">Results</div>
+            <div class="api-grid" id="api-results-list"></div>
+            <div class="pagination">
+              <button
+                class="btn btn-outline btn-sm"
+                id="prev-page-btn"
+                onclick="changeAPIPage(-1)"
+              >
+                <i class="fa-solid fa-chevron-left"></i> Prev
+              </button>
+              <span class="page-indicator" id="page-indicator">Page 1</span>
+              <button
+                class="btn btn-outline btn-sm"
+                id="next-page-btn"
+                onclick="changeAPIPage(1)"
+              >
+                Next <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
 
-  <!-- ── LOAN REGISTRY ── -->
-  <section id="admin-loans-section" class="hidden">
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-list-check"></i> All Active Loans</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Member</th>
-              <th colspan="2">Books on Loan</th>
-            </tr>
-          </thead>
-          <tbody id="admin-loans-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+        <!-- Local Catalog -->
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-warehouse"></i> Recent 10 Imported Books
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: flex-end;
+              margin-bottom: 1.25rem;
+            "
+          >
+            <button class="btn btn-outline btn-sm" onclick="loadAllBooks()">
+              <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Author</th>
+                  <th>Year</th>
+                  <th>Genre</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="all-books-tbody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <i class="fa-solid fa-spinner spinner"></i>
+                      <p>Loading…</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-  <!-- ── MEMBERS ── -->
-  <section id="all-members-section" class="hidden">
-    <div class="card">
-      <div class="card-title"><i class="fa-solid fa-users"></i> Registered Members</div>
-      <div class="members-grid" id="members-grid"></div>
-    </div>
-  </section>
-</main>
+      <!-- ── MY LOANS ── -->
+      <section id="my-books-section" class="hidden">
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-bookmark"></i> My Active Loans
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Borrowed</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="my-books-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-<script>
-  // ══════════════════════════════════
-  //  STATE
-  // ══════════════════════════════════
-  let currentUser = null;
-  let apiResultsData = [];
-  let apiCurrentPage = 0;
-  let allBooksCache = [];
-  const ITEMS_PER_PAGE = 6;
+      <!-- ── LOAN REGISTRY ── -->
+      <section id="admin-loans-section" class="hidden">
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-list-check"></i> All Active Loans
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th colspan="2">Books on Loan</th>
+                </tr>
+              </thead>
+              <tbody id="admin-loans-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-  // ══════════════════════════════════
-  //  TOAST
-  // ══════════════════════════════════
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    const m = document.getElementById('toast-msg');
-    t.className = `toast ${type}`;
-    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-    t.querySelector('i').className = `fa-solid ${icons[type] || icons.success}`;
-    m.textContent = msg;
-    t.style.display = 'flex';
-    setTimeout(() => t.style.display = 'none', 3000);
-  }
+      <!-- ── MEMBERS ── -->
+      <section id="all-members-section" class="hidden">
+        <div class="card">
+          <div class="card-title">
+            <i class="fa-solid fa-users"></i> Registered Members
+          </div>
+          <div class="members-grid" id="members-grid"></div>
+        </div>
+      </section>
+    </main>
 
-  // ══════════════════════════════════
-  //  AUTH
-  // ══════════════════════════════════
-  function openLogin() {
-    document.getElementById('login-modal').classList.add('open');
-    toggleAuth('login');
-  }
+    <script>
+      // ══════════════════════════════════
+      //  STATE
+      // ══════════════════════════════════
+      let currentUser = null;
+      let apiResultsData = [];
+      let apiCurrentPage = 0;
+      let allBooksCache = [];
+      const ITEMS_PER_PAGE = 10;
 
-  function closeLogin() {
-    document.getElementById('login-modal').classList.remove('open');
-  }
+      // ══════════════════════════════════
+      //  TOAST
+      // ══════════════════════════════════
+      function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        const m = document.getElementById('toast-msg');
+        t.className = `toast ${type}`;
+        const icons = {
+          success: 'fa-circle-check',
+          error: 'fa-circle-xmark',
+          info: 'fa-circle-info',
+        };
+        t.querySelector('i').className =
+          `fa-solid ${icons[type] || icons.success}`;
+        m.textContent = msg;
+        t.style.display = 'flex';
+        setTimeout(() => (t.style.display = 'none'), 3000);
+      }
 
-  function toggleAuth(view) {
-    document.getElementById('login-view').classList.toggle('hidden', view === 'reg');
-    document.getElementById('register-view').classList.toggle('hidden', view === 'login');
-  }
+      // ══════════════════════════════════
+      //  AUTH
+      // ══════════════════════════════════
+      function openLogin() {
+        document.getElementById('login-modal').classList.add('open');
+        toggleAuth('login');
+      }
 
-  async function login() {
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    if (!email) return;
-    // Uses /members/search backend route to verify member
-    const res = await fetch(`/members/search?email=${encodeURIComponent(email)}`);
-    if (res.ok) {
-      currentUser = await res.json();
-      setLoggedIn();
-      closeLogin();
-      showToast(`Welcome back, ${currentUser.name}!`, 'success');
-      loadAllBooks();
-      showSection('all-books');
-    } else {
-      showToast('No member found with this email', 'error');
-    }
-  }
+      function closeLogin() {
+        document.getElementById('login-modal').classList.remove('open');
+      }
 
-  async function register() {
-    const name = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim().toLowerCase();
-    // Uses /members/register backend route
-    const res = await fetch('/members/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showToast('Account created! You can now sign in.', 'success');
-      toggleAuth('login');
-    } else {
-      showToast(data.error || 'Registration failed', 'error');
-    }
-  }
+      function toggleAuth(view) {
+        document
+          .getElementById('login-view')
+          .classList.toggle('hidden', view === 'reg');
+        document
+          .getElementById('register-view')
+          .classList.toggle('hidden', view === 'login');
+      }
 
-  function setLoggedIn() {
-    const initials = currentUser.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    document.getElementById('user-initials').textContent = initials;
-    document.getElementById('user-name-display').textContent = currentUser.name;
-    document.getElementById('user-chip-wrap').classList.remove('hidden');
-    document.getElementById('auth-btn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Logout';
-    document.getElementById('auth-btn').onclick = logout;
-    document.getElementById('welcome-msg').textContent = `Logged in as ${currentUser.name}`;
-    // Hide public-only nav items when logged in
-    document.querySelectorAll('.public-only').forEach(el => el.classList.add('hidden'));
-  }
+      async function login() {
+        const email = document
+          .getElementById('loginEmail')
+          .value.trim()
+          .toLowerCase();
+        if (!email) return;
+        // Uses /members/search backend route to verify member
+        const res = await fetch(
+          `/members/search?email=${encodeURIComponent(email)}`
+        );
+        if (res.ok) {
+          currentUser = await res.json();
+          setLoggedIn();
+          closeLogin();
+          showToast(`Welcome back, ${currentUser.name}!`, 'success');
+          loadAllBooks();
+          showSection('all-books');
+        } else {
+          showToast('No member found with this email', 'error');
+        }
+      }
 
-  function logout() {
-    currentUser = null;
-    location.reload();
-  }
+      async function register() {
+        const name = document.getElementById('regName').value.trim();
+        const email = document
+          .getElementById('regEmail')
+          .value.trim()
+          .toLowerCase();
+        // Uses /members/register backend route
+        const res = await fetch('/members/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('Account created! You can now sign in.', 'success');
+          toggleAuth('login');
+        } else {
+          showToast(data.error || 'Registration failed', 'error');
+        }
+      }
 
-  // ══════════════════════════════════
-  //  NAVIGATION
-  // ══════════════════════════════════
-  const SECTION_MAP = {
-    'all-books': { btn: 'nav-catalog', title: 'Library Catalog', sub: 'Browse and discover books' },
-    'my-books':  { btn: 'nav-loans',   title: 'My Loans',        sub: 'Your borrowed books' },
-    'admin-loans':{ btn: 'nav-registry',title: 'Loan Registry',  sub: 'All active loans overview' },
-    'all-members':{ btn: 'nav-members', title: 'Members',         sub: 'Registered library members' }
-  };
+      function setLoggedIn() {
+        const initials = currentUser.name
+          .split(' ')
+          .map((w) => w[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+        document.getElementById('user-initials').textContent = initials;
+        document.getElementById('user-name-display').textContent =
+          currentUser.name;
+        document.getElementById('user-chip-wrap').classList.remove('hidden');
+        document.getElementById('auth-btn').innerHTML =
+          '<i class="fa-solid fa-right-from-bracket"></i> Logout';
+        document.getElementById('auth-btn').onclick = logout;
+        document.getElementById('welcome-msg').textContent =
+          `Logged in as ${currentUser.name}`;
+        // Hide public-only nav items when logged in
+        document
+          .querySelectorAll('.public-only')
+          .forEach((el) => el.classList.add('hidden'));
+      }
 
-  function showSection(section) {
-    if (section === 'my-books' && !currentUser) { openLogin(); return; }
-    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const el = document.getElementById(`${section}-section`);
-    if (el) el.classList.remove('hidden');
-    const info = SECTION_MAP[section];
-    if (info) {
-      document.getElementById('section-title').textContent = info.title;
-      document.getElementById('welcome-msg').textContent = currentUser ? `Logged in as ${currentUser.name}` : info.sub;
-      const btn = document.getElementById(info.btn);
-      if (btn) btn.classList.add('active');
-    }
-    if (section === 'all-books') loadAllBooks();
-    if (section === 'my-books') loadMyBooks();
-    if (section === 'admin-loans') loadAdminLoans();
-    if (section === 'all-members') loadMembers();
-  }
+      function logout() {
+        currentUser = null;
+        location.reload();
+      }
 
-  // ══════════════════════════════════
-  //  EXTERNAL SEARCH (Open Library)
-  //  No duplication — search logic mirrors backend normalizeBook from apilibrary.js
-  // ══════════════════════════════════
-  async function searchExternalAPI() {
-    const query    = document.getElementById('apiSearchQuery').value.trim();
-    const category = document.getElementById('apiSearchCategory').value.trim();
-    const isbn     = document.getElementById('apiSearchISBN').value.trim();
-    if (!query && !category && !isbn) { showToast('Enter a title, author, category or ISBN', 'info'); return; }
+      // ══════════════════════════════════
+      //  NAVIGATION
+      // ══════════════════════════════════
+      const SECTION_MAP = {
+        'all-books': {
+          btn: 'nav-catalog',
+          title: 'Library Catalog',
+          sub: 'Browse and discover books',
+        },
+        'my-books': {
+          btn: 'nav-loans',
+          title: 'My Loans',
+          sub: 'Your borrowed books',
+        },
+        'admin-loans': {
+          btn: 'nav-registry',
+          title: 'Loan Registry',
+          sub: 'All active loans overview',
+        },
+        'all-members': {
+          btn: 'nav-members',
+          title: 'Members',
+          sub: 'Registered library members',
+        },
+      };
 
-    const resultsEl = document.getElementById('api-results');
-    const listEl    = document.getElementById('api-results-list');
-    resultsEl.classList.remove('hidden');
-    listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-spinner spinner"></i><p>Searching Open Library…</p></div>';
+      function showSection(section) {
+        if (section === 'my-books' && !currentUser) {
+          openLogin();
+          return;
+        }
+        document
+          .querySelectorAll('section')
+          .forEach((s) => s.classList.add('hidden'));
+        document
+          .querySelectorAll('.nav-btn')
+          .forEach((b) => b.classList.remove('active'));
+        const el = document.getElementById(`${section}-section`);
+        if (el) el.classList.remove('hidden');
+        const info = SECTION_MAP[section];
+        if (info) {
+          document.getElementById('section-title').textContent = info.title;
+          document.getElementById('welcome-msg').textContent = currentUser
+            ? `Logged in as ${currentUser.name}`
+            : info.sub;
+          const btn = document.getElementById(info.btn);
+          if (btn) btn.classList.add('active');
+        }
+        if (section === 'all-books') loadAllBooks();
+        if (section === 'my-books') loadMyBooks();
+        if (section === 'admin-loans') loadAdminLoans();
+        if (section === 'all-members') loadMembers();
+      }
 
-    let params = new URLSearchParams();
-    if (isbn) {
-      params.set('isbn', isbn);
-    } else {
-      // q= handles title/author fuzzy search; subject= filters by category
-      if (query) params.set('q', query);
-      if (category) params.set('subject', category);
-    }
-    params.set('limit', 30);
-    params.set('fields', 'title,author_name,first_publish_year,isbn,cover_i,subject');
+      // ══════════════════════════════════
+      //  EXTERNAL SEARCH (Open Library)
+      //  No duplication — search logic mirrors backend normalizeBook from apilibrary.js
+      // ══════════════════════════════════
+      async function searchExternalAPI() {
+        const query = document.getElementById('apiSearchQuery').value.trim();
+        const category = document
+          .getElementById('apiSearchCategory')
+          .value.trim();
+        const isbn = document.getElementById('apiSearchISBN').value.trim();
+        if (!query && !category && !isbn) {
+          showToast('Enter a title, author, category or ISBN', 'info');
+          return;
+        }
 
-    const res = await fetch(`https://openlibrary.org/search.json?${params}`);
-    const data = await res.json();
-    apiResultsData = data.docs || [];
-    apiCurrentPage = 0;
-    renderAPIPage();
-  }
+        const resultsEl = document.getElementById('api-results');
+        const listEl = document.getElementById('api-results-list');
+        resultsEl.classList.remove('hidden');
+        listEl.innerHTML =
+          '<div class="empty-state"><i class="fa-solid fa-spinner spinner"></i><p>Searching Open Library…</p></div>';
 
-  function renderAPIPage() {
-    const listEl = document.getElementById('api-results-list');
-    const total  = apiResultsData.length;
-    const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
-    const start = apiCurrentPage * ITEMS_PER_PAGE;
-    const items = apiResultsData.slice(start, start + ITEMS_PER_PAGE);
+        let params = new URLSearchParams();
+        if (isbn) {
+          params.set('isbn', isbn);
+        } else {
+          // q= handles title/author fuzzy search; subject= filters by category
+          if (query) params.set('q', query);
+          if (category) params.set('subject', category);
+        }
+        params.set('limit', 100);
+        params.set(
+          'fields',
+          'title,author_name,first_publish_year,isbn,cover_i,subject'
+        );
 
-    document.getElementById('api-result-count').textContent = `${total} results found`;
-    document.getElementById('page-indicator').textContent = `Page ${apiCurrentPage + 1} of ${totalPages || 1}`;
-    document.getElementById('prev-page-btn').disabled = apiCurrentPage === 0;
-    document.getElementById('next-page-btn').disabled = apiCurrentPage >= totalPages - 1;
+        const res = await fetch(
+          `https://openlibrary.org/search.json?${params}`
+        );
+        const data = await res.json();
+        apiResultsData = data.docs || [];
+        apiCurrentPage = 0;
+        renderAPIPage();
+      }
 
-    if (items.length === 0) {
-      listEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-face-sad-tear"></i><p>No results found</p></div>';
-      return;
-    }
+      function renderAPIPage() {
+        const listEl = document.getElementById('api-results-list');
+        const total = apiResultsData.length;
+        const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+        const start = apiCurrentPage * ITEMS_PER_PAGE;
+        const items = apiResultsData.slice(start, start + ITEMS_PER_PAGE);
 
-    listEl.innerHTML = items.map(book => {
-      const author = book.author_name ? book.author_name[0] : 'Unknown Author';
-      const cover  = book.cover_i
-        ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
-        : `https://placehold.co/52x74/e0d9c8/9898a8?text=?`;
-      const genre  = Array.isArray(book.subject) && book.subject.length ? book.subject[0] : null;
-      const year   = book.first_publish_year || '—';
-      const safeTitle  = (book.title  || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const safeAuthor = author.replace(/'/g, "\\'");
-      const safeGenre  = genre ? genre.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
-      return `
+        document.getElementById('api-result-count').textContent =
+          `${total} results found`;
+        document.getElementById('page-indicator').textContent =
+          `Page ${apiCurrentPage + 1} of ${totalPages || 1}`;
+        document.getElementById('prev-page-btn').disabled =
+          apiCurrentPage === 0;
+        document.getElementById('next-page-btn').disabled =
+          apiCurrentPage >= totalPages - 1;
+
+        if (items.length === 0) {
+          listEl.innerHTML =
+            '<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-face-sad-tear"></i><p>No results found</p></div>';
+          return;
+        }
+
+        listEl.innerHTML = items
+          .map((book) => {
+            const author = book.author_name
+              ? book.author_name[0]
+              : 'Unknown Author';
+            const cover = book.cover_i
+              ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+              : `https://placehold.co/52x74/e0d9c8/9898a8?text=?`;
+            const genre =
+              Array.isArray(book.subject) && book.subject.length
+                ? book.subject[0]
+                : null;
+            const year = book.first_publish_year || '—';
+            const safeTitle = (book.title || '')
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '&quot;');
+            const safeAuthor = author.replace(/'/g, "\\'");
+            const safeGenre = genre
+              ? genre.replace(/'/g, "\\'").replace(/"/g, '&quot;')
+              : '';
+            return `
         <div class="api-card">
           <img src="${cover}" class="api-card-cover" onerror="this.src='https://placehold.co/52x74/e0d9c8/9898a8?text=?'"/>
           <div class="api-card-info">
@@ -1104,57 +1496,63 @@
             </button>
           </div>
         </div>`;
-    }).join('');
-  }
+          })
+          .join('');
+      }
 
-  function changeAPIPage(dir) {
-    const totalPages = Math.ceil(apiResultsData.length / ITEMS_PER_PAGE);
-    apiCurrentPage = Math.max(0, Math.min(apiCurrentPage + dir, totalPages - 1));
-    renderAPIPage();
-  }
+      function changeAPIPage(dir) {
+        const totalPages = Math.ceil(apiResultsData.length / ITEMS_PER_PAGE);
+        apiCurrentPage = Math.max(
+          0,
+          Math.min(apiCurrentPage + dir, totalPages - 1)
+        );
+        renderAPIPage();
+      }
 
-  // Import uses /books/import backend route — genre passed automatically from Open Library subject
-  async function confirmImport(title, author, year, genre) {
-    genre = genre || null;
-    const res = await fetch('/books/import', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, genre })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showToast(`"${title}" added to library!`, 'success');
-      loadAllBooks();
-    } else {
-      showToast(data.error || 'Import failed', 'error');
-    }
-  }
+      // Import uses /books/import backend route — genre passed automatically from Open Library subject
+      async function confirmImport(title, author, year, genre) {
+        genre = genre || null;
+        const res = await fetch('/books/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, genre }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`"${title}" added to library!`, 'success');
+          loadAllBooks();
+        } else {
+          showToast(data.error || 'Import failed', 'error');
+        }
+      }
 
-  // ══════════════════════════════════
-  //  LOCAL CATALOG  — uses /books GET
-  // ══════════════════════════════════
-  async function loadAllBooks() {
-    const res   = await fetch('/books');
-    allBooksCache = await res.json();
-    renderLocalBooks(allBooksCache);
-  }
+      // ══════════════════════════════════
+      //  LOCAL CATALOG  — uses /books GET
+      // ══════════════════════════════════
+      async function loadAllBooks() {
+        const res = await fetch('/books');
+        allBooksCache = await res.json();
+        renderLocalBooks(allBooksCache);
+      }
 
-
-  function renderLocalBooks(books) {
-    const tbody = document.getElementById('all-books-tbody');
-    if (!books.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-books"></i><p>No books in collection yet</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = books.map(b => {
-      const safeTitle = b.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const loanBtn = currentUser
-        ? `<button class="btn btn-green btn-sm" onclick="loanBook(${b.book_id})"><i class="fa-solid fa-hand-holding-heart"></i> Loan</button>`
-        : `<button class="btn btn-outline btn-sm" onclick="openLogin()"><i class="fa-solid fa-lock"></i> Loan</button>`;
-      const deleteBtn = !currentUser
-        ? `<button class="btn btn-red btn-sm" onclick="deleteBook(${b.book_id})"><i class="fa-solid fa-trash"></i></button>`
-        : '';
-      return `
+      function renderLocalBooks(books) {
+        const tbody = document.getElementById('all-books-tbody');
+        if (!books.length) {
+          tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fa-solid fa-books"></i><p>No books in collection yet</p></div></td></tr>`;
+          return;
+        }
+        tbody.innerHTML = books
+          .map((b) => {
+            const safeTitle = b.title
+              .replace(/'/g, "\\'")
+              .replace(/"/g, '&quot;');
+            const loanBtn = currentUser
+              ? `<button class="btn btn-green btn-sm" onclick="loanBook(${b.book_id})"><i class="fa-solid fa-hand-holding-heart"></i> Loan</button>`
+              : `<button class="btn btn-outline btn-sm" onclick="openLogin()"><i class="fa-solid fa-lock"></i> Loan</button>`;
+            const deleteBtn = !currentUser
+              ? `<button class="btn btn-red btn-sm" onclick="deleteBook(${b.book_id})"><i class="fa-solid fa-trash"></i></button>`
+              : '';
+            return `
         <tr>
           <td>
             <div class="book-cell">
@@ -1182,130 +1580,154 @@
             <div class="teaser-box" id="teaser-${b.book_id}"></div>
           </td>
         </tr>`;
-    }).join('');
-  }
-
-  async function deleteBook(id) {
-    // Check for active loans on this book via GET /loans/book/:id
-    const historyRes = await fetch(`/loans/book/${id}`);
-    const history = historyRes.ok ? await historyRes.json() : [];
-    const activeLoans = history.filter(l => !l.returned);
-
-    let message;
-    if (activeLoans.length > 0) {
-      const borrowers = activeLoans.map(l => l.name).join(', ');
-      message = `⚠️ This book is currently on loan to: ${borrowers}\n\nDeleting it will also remove their active loan. Are you sure?`;
-    } else {
-      message = 'Remove this book and its full loan history from the library?';
-    }
-
-    if (!confirm(message)) return;
-
-    // Backend cascades: deletes all loans for this book first, then the book
-    const res = await fetch(`/books/${id}`, { method: 'DELETE' });
-    if (res.ok) { showToast('Book removed', 'info'); loadAllBooks(); }
-    else {
-      const data = await res.json();
-      showToast(data.error || 'Could not delete book', 'error');
-    }
-  }
-
-  // ══════════════════════════════════
-  //  TEASER — uses /books/teaser?title= GET route
-  // ══════════════════════════════════
-  async function toggleTeaser(id, title) {
-    const row = document.getElementById(`teaser-row-${id}`);
-    const box = document.getElementById(`teaser-${id}`);
-    const btn = document.getElementById(`teaser-btn-${id}`);
-
-    // Toggle off if already open
-    if (row.classList.contains('open')) {
-      row.classList.remove('open');
-      btn.classList.remove('active');
-      return;
-    }
-
-    row.classList.add('open');
-    btn.classList.add('active');
-
-    // Only fetch if not already loaded
-    if (box.dataset.loaded) return;
-    box.innerHTML = `<span class="teaser-cat"><i class="fa-solid fa-spinner spinner"></i> AI Librarian thinking…</span>`;
-    try {
-      const res  = await fetch(`/books/teaser?title=${encodeURIComponent(title)}`);
-      const data = await res.json();
-      if (data && data.teaser) {
-        box.innerHTML = `<div class="teaser-cat"><i class="fa-solid fa-tags"></i> ${data.category || 'General'}</div>${data.teaser}`;
-        box.dataset.loaded = '1';
-      } else {
-        box.innerHTML = 'No insight available for this title.';
+          })
+          .join('');
       }
-    } catch {
-      box.innerHTML = 'Could not reach AI Librarian.';
-    }
-  }
 
-  // ══════════════════════════════════
-  //  LOANS — uses /loans routes
-  // ══════════════════════════════════
-  async function loanBook(bookId) {
-    if (!currentUser) { openLogin(); return; }
-    // Uses /loans POST route
-    const res  = await fetch('/loans', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_id: bookId, member_id: currentUser.member_id })
-    });
-    const data = await res.json();
-    if (res.ok) { showToast('Book loaned successfully!', 'success'); loadAllBooks(); }
-    else showToast(data.error || 'Could not loan book', 'error');
-  }
+      async function deleteBook(id) {
+        // Check for active loans on this book via GET /loans/book/:id
+        const historyRes = await fetch(`/loans/book/${id}`);
+        const history = historyRes.ok ? await historyRes.json() : [];
+        const activeLoans = history.filter((l) => !l.returned);
 
-  // Uses /members/:id/loans GET route (member-specific)
-  async function loadMyBooks() {
-    if (!currentUser) return;
-    const res   = await fetch(`/members/${currentUser.member_id}/loans`);
-    const loans = await res.json();
-    const active = loans.filter(l => !l.returned);
-    const tbody = document.getElementById('my-books-tbody');
-    if (!active.length) {
-      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-bookmark"></i><p>No active loans</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = active.map(l => `
+        let message;
+        if (activeLoans.length > 0) {
+          const borrowers = activeLoans.map((l) => l.name).join(', ');
+          message = `⚠️ This book is currently on loan to: ${borrowers}\n\nDeleting it will also remove their active loan. Are you sure?`;
+        } else {
+          message =
+            'Remove this book and its full loan history from the library?';
+        }
+
+        if (!confirm(message)) return;
+
+        // Backend cascades: deletes all loans for this book first, then the book
+        const res = await fetch(`/books/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Book removed', 'info');
+          loadAllBooks();
+        } else {
+          const data = await res.json();
+          showToast(data.error || 'Could not delete book', 'error');
+        }
+      }
+
+      // ══════════════════════════════════
+      //  TEASER — uses /books/teaser?title= GET route
+      // ══════════════════════════════════
+      async function toggleTeaser(id, title) {
+        const row = document.getElementById(`teaser-row-${id}`);
+        const box = document.getElementById(`teaser-${id}`);
+        const btn = document.getElementById(`teaser-btn-${id}`);
+
+        // Toggle off if already open
+        if (row.classList.contains('open')) {
+          row.classList.remove('open');
+          btn.classList.remove('active');
+          return;
+        }
+
+        row.classList.add('open');
+        btn.classList.add('active');
+
+        // Only fetch if not already loaded
+        if (box.dataset.loaded) return;
+        box.innerHTML = `<span class="teaser-cat"><i class="fa-solid fa-spinner spinner"></i> AI Librarian thinking…</span>`;
+        try {
+          const res = await fetch(
+            `/books/teaser?title=${encodeURIComponent(title)}`
+          );
+          const data = await res.json();
+          if (data && data.teaser) {
+            box.innerHTML = `<div class="teaser-cat"><i class="fa-solid fa-tags"></i> ${data.category || 'General'}</div>${data.teaser}`;
+            box.dataset.loaded = '1';
+          } else {
+            box.innerHTML = 'No insight available for this title.';
+          }
+        } catch {
+          box.innerHTML = 'Could not reach AI Librarian.';
+        }
+      }
+
+      // ══════════════════════════════════
+      //  LOANS — uses /loans routes
+      // ══════════════════════════════════
+      async function loanBook(bookId) {
+        if (!currentUser) {
+          openLogin();
+          return;
+        }
+        // Uses /loans POST route
+        const res = await fetch('/loans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            book_id: bookId,
+            member_id: currentUser.member_id,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast('Book loaned successfully!', 'success');
+          loadAllBooks();
+        } else showToast(data.error || 'Could not loan book', 'error');
+      }
+
+      // Uses /members/:id/loans GET route (member-specific)
+      async function loadMyBooks() {
+        if (!currentUser) return;
+        const res = await fetch(`/members/${currentUser.member_id}/loans`);
+        const loans = await res.json();
+        const active = loans.filter((l) => !l.returned);
+        const tbody = document.getElementById('my-books-tbody');
+        if (!active.length) {
+          tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-bookmark"></i><p>No active loans</p></div></td></tr>`;
+          return;
+        }
+        tbody.innerHTML = active
+          .map(
+            (l) => `
       <tr>
         <td class="book-title-cell">${l.title}</td>
-        <td class="dim">${new Date(l.loan_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</td>
+        <td class="dim">${new Date(l.loan_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
         <td><span class="badge badge-gold"><i class="fa-solid fa-clock"></i> On Loan</span></td>
         <td><span class="badge badge-gold"><i class="fa-solid fa-clock"></i> Active</span></td>
-      </tr>`).join('');
-  }
+      </tr>`
+          )
+          .join('');
+      }
 
-  // Uses /loans GET and /loans/return/:id PATCH
-  async function loadAdminLoans() {
-    const res   = await fetch('/loans');
-    const loans = await res.json();
-    const tbody = document.getElementById('admin-loans-tbody');
-    if (!loans.length) {
-      tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state"><i class="fa-solid fa-list-check"></i><p>No active loans</p></div></td></tr>`;
-      return;
-    }
-    // Group loans by member
-    const grouped = {};
-    for (const l of loans) {
-      if (!grouped[l.name]) grouped[l.name] = { name: l.name, email: l.email, books: [] };
-      grouped[l.name].books.push(l);
-    }
-    tbody.innerHTML = Object.values(grouped).map(member => {
-      const bookRows = member.books.map((l, i) => `
+      // Uses /loans GET and /loans/return/:id PATCH
+      async function loadAdminLoans() {
+        const res = await fetch('/loans');
+        const loans = await res.json();
+        const tbody = document.getElementById('admin-loans-tbody');
+        if (!loans.length) {
+          tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state"><i class="fa-solid fa-list-check"></i><p>No active loans</p></div></td></tr>`;
+          return;
+        }
+        // Group loans by member
+        const grouped = {};
+        for (const l of loans) {
+          if (!grouped[l.name])
+            grouped[l.name] = { name: l.name, email: l.email, books: [] };
+          grouped[l.name].books.push(l);
+        }
+        tbody.innerHTML = Object.values(grouped)
+          .map((member) => {
+            const bookRows = member.books
+              .map(
+                (l, i) => `
         <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; ${i > 0 ? 'border-top:1px solid var(--parchment-dark);' : ''}">
           <div>
             <span style="font-weight:600; font-size:0.875rem;">${l.title}</span>
-            <span class="dim" style="margin-left:10px; font-size:0.78rem;">${new Date(l.loan_date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</span>
+            <span class="dim" style="margin-left:10px; font-size:0.78rem;">${new Date(l.loan_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           </div>
           <button class="btn btn-outline btn-sm" onclick="returnBook(${l.loan_id}, true)"><i class="fa-solid fa-rotate-left"></i> Return</button>
-        </div>`).join('');
-      return `
+        </div>`
+              )
+              .join('');
+            return `
         <tr>
           <td style="vertical-align:top; padding-top:16px; white-space:nowrap;">
             <div style="font-weight:700">${member.name}</div>
@@ -1314,34 +1736,42 @@
           </td>
           <td colspan="2">${bookRows}</td>
         </tr>`;
-    }).join('');
-  }
+          })
+          .join('');
+      }
 
-  async function returnBook(loanId, isAdmin) {
-    // Uses /loans/return/:id PATCH route
-    const res = await fetch(`/loans/return/${loanId}`, { method: 'PATCH' });
-    if (res.ok) {
-      showToast('Book returned', 'success');
-      if (isAdmin) loadAdminLoans(); else loadMyBooks();
-      loadAllBooks();
-    } else showToast('Could not process return', 'error');
-  }
+      async function returnBook(loanId, isAdmin) {
+        // Uses /loans/return/:id PATCH route
+        const res = await fetch(`/loans/return/${loanId}`, { method: 'PATCH' });
+        if (res.ok) {
+          showToast('Book returned', 'success');
+          if (isAdmin) loadAdminLoans();
+          else loadMyBooks();
+          loadAllBooks();
+        } else showToast('Could not process return', 'error');
+      }
 
-  // ══════════════════════════════════
-  //  MEMBERS — uses /members routes
-  // ══════════════════════════════════
-  async function loadMembers() {
-    // Uses /members GET route
-    const res   = await fetch('/members');
-    const data  = await res.json();
-    const grid  = document.getElementById('members-grid');
-    if (!data.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-users"></i><p>No members yet</p></div>`;
-      return;
-    }
-    grid.innerHTML = data.map(m => {
-      const initials = m.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      return `
+      // ══════════════════════════════════
+      //  MEMBERS — uses /members routes
+      // ══════════════════════════════════
+      async function loadMembers() {
+        // Uses /members GET route
+        const res = await fetch('/members');
+        const data = await res.json();
+        const grid = document.getElementById('members-grid');
+        if (!data.length) {
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-users"></i><p>No members yet</p></div>`;
+          return;
+        }
+        grid.innerHTML = data
+          .map((m) => {
+            const initials = m.name
+              .split(' ')
+              .map((w) => w[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2);
+            return `
         <div class="member-card">
           <div class="member-avatar">${initials}</div>
           <div style="flex:1; min-width:0;">
@@ -1352,33 +1782,36 @@
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>`;
-    }).join('');
-  }
+          })
+          .join('');
+      }
 
-  async function deleteMember(id) {
-    if (!confirm('Delete this member and their loan history?')) return;
-    // Uses /members/:id DELETE route
-    const res = await fetch(`/members/${id}`, { method: 'DELETE' });
-    if (res.ok) { showToast('Member removed', 'info'); loadMembers(); }
-    else showToast('Could not delete member', 'error');
-  }
+      async function deleteMember(id) {
+        if (!confirm('Delete this member and their loan history?')) return;
+        // Uses /members/:id DELETE route
+        const res = await fetch(`/members/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Member removed', 'info');
+          loadMembers();
+        } else showToast('Could not delete member', 'error');
+      }
 
-  // ══════════════════════════════════
-  //  AI INSIGHT (sidebar banner)
-  // ══════════════════════════════════
-  function showAIInsight(text) {
-    if (!text) return;
-    const c = document.getElementById('ai-insight-container');
-    document.getElementById('ai-insight-text').textContent = text;
-    c.style.display = 'block';
-  }
+      // ══════════════════════════════════
+      //  AI INSIGHT (sidebar banner)
+      // ══════════════════════════════════
+      function showAIInsight(text) {
+        if (!text) return;
+        const c = document.getElementById('ai-insight-container');
+        document.getElementById('ai-insight-text').textContent = text;
+        c.style.display = 'block';
+      }
 
-  // ══════════════════════════════════
-  //  INIT
-  // ══════════════════════════════════
-  window.addEventListener('DOMContentLoaded', () => {
-    loadAllBooks();
-  });
-</script>
-</body>
+      // ══════════════════════════════════
+      //  INIT
+      // ══════════════════════════════════
+      window.addEventListener('DOMContentLoaded', () => {
+        loadAllBooks();
+      });
+    </script>
+  </body>
 </html>
